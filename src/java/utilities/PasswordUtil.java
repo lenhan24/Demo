@@ -82,4 +82,7 @@ public class PasswordUtil {
         SecretKeyFactory skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
         return skf.generateSecret(spec).getEncoded();
     }
+    public static void newMetho(){
+        
+    }
 }
