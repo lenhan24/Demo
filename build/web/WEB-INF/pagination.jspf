@@ -1,0 +1,30 @@
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%--
+  Reusable pagination bar. Expects request attributes:
+  currentPage (int), totalPages (int), and page-scope var "baseUrl" (String).
+  Optional request params "q" and "role" (if present) are preserved across page links.
+--%>
+<c:set var="qs" value="${not empty param.q ? '&q='.concat(param.q) : ''}${not empty param.role ? '&role='.concat(param.role) : ''}"/>
+<div class="pagination-shop">
+  <c:choose>
+    <c:when test="${currentPage > 1}">
+      <a class="page-btn" href="${baseUrl}?page=${currentPage - 1}${qs}"><svg class="icon"><use href="#ic-chevron-left"/></svg></a>
+    </c:when>
+    <c:otherwise>
+      <span class="page-btn" style="opacity:.4;pointer-events:none;"><svg class="icon"><use href="#ic-chevron-left"/></svg></span>
+    </c:otherwise>
+  </c:choose>
+
+  <c:forEach var="p" begin="1" end="${totalPages}">
+    <a class="page-btn ${p == currentPage ? 'active' : ''}" href="${baseUrl}?page=${p}${qs}">${p}</a>
+  </c:forEach>
+
+  <c:choose>
+    <c:when test="${currentPage < totalPages}">
+      <a class="page-btn" href="${baseUrl}?page=${currentPage + 1}${qs}"><svg class="icon"><use href="#ic-chevron-right"/></svg></a>
+    </c:when>
+    <c:otherwise>
+      <span class="page-btn" style="opacity:.4;pointer-events:none;"><svg class="icon"><use href="#ic-chevron-right"/></svg></span>
+    </c:otherwise>
+  </c:choose>
+</div>

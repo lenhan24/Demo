@@ -1,0 +1,50 @@
+<%--
+  account-info.jspf
+  ------------------
+  Widget hiển thị thông tin tài khoản (CHỈ ĐỌC) cho tài khoản nội bộ
+  (Staff/Manager/Admin) đang đăng nhập, đặt ở topbar của các màn quản trị.
+
+  Lý do widget này chỉ đọc, không có nút "Sửa": theo quy định mới,
+  Staff/Manager/Admin không được tự sửa thông tin tài khoản của chính mình
+  (route /account, /changeinfo, /changepass đã bị AuthFilter chặn với các
+  role này) — mọi thay đổi thông tin của các tài khoản này chỉ được Admin
+  thực hiện qua /admin/accounts.
+
+  Yêu cầu: trang include file này phải đã có sẵn session attribute "account"
+  (luôn có, vì các route /manager/*, /staff/*, /admin/* đã bắt buộc đăng nhập
+  qua AuthFilter) và đã khai báo taglib fn (functions) ở đầu trang.
+--%>
+<div class="account-info-widget">
+  <button type="button" class="account-avatar account-info-trigger" style="width:38px;height:38px;font-size:.95rem;border:none;cursor:pointer;"
+          onclick="document.getElementById('accountInfoDropdown').classList.toggle('open')"
+          title="Thông tin tài khoản">
+    ${fn:toUpperCase(fn:substring(sessionScope.account.fullName, 0, 1))}
+  </button>
+  <div class="account-info-dropdown" id="accountInfoDropdown">
+    <div class="account-info-head">
+      <div class="account-avatar" style="width:44px;height:44px;font-size:1.1rem;">
+        ${fn:toUpperCase(fn:substring(sessionScope.account.fullName, 0, 1))}
+      </div>
+      <div>
+        <div class="account-info-name">${sessionScope.account.fullName}</div>
+        <span class="account-info-role-tag">${sessionScope.account.role}</span>
+      </div>
+    </div>
+    <div class="account-info-row"><b></b></div>
+    <div class="account-info-row"><b></b></div>
+    <p class="account-info-hint">
+   
+    </p>
+  </div>
+</div>
+<script>
+// Đóng dropdown thông tin tài khoản khi bấm ra ngoài — gắn 1 lần cũng không
+// sao vì mỗi trang chỉ include fragment này 1 lần.
+document.addEventListener('click', function(e){
+  var widget = document.querySelector('.account-info-widget');
+  var dd = document.getElementById('accountInfoDropdown');
+  if (widget && dd && !widget.contains(e.target)) {
+    dd.classList.remove('open');
+  }
+});
+</script>

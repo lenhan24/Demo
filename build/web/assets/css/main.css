@@ -1,0 +1,2702 @@
+/* ============================================================================
+   BOOKYMART — MAIN.CSS
+   ----------------------------------------------------------------------------
+   MỤC LỤC:
+     1. Biến CSS + Reset nền tảng (:root, *, body, heading)              (dòng ~1)
+     2. Icon SVG inline                                                   (~27)
+     3. Voucher card                                                      (~42)
+     4. Banner khuyến mãi cuộn (marquee)                                  (~114)
+     5. Thanh tiện ích trên cùng + Navbar                                 (~150)
+     6. Hero section (trang chủ)                                         (~212)
+     7. Nhãn section, Category pills, Product card                       (~292)
+     8. Banner strip, Newsletter, Footer                                  (~390)
+     9. Category strip cuộn ngang, badge "Mới"                            (~463)
+    10. Stock status (chi tiết sản phẩm), QR Payment Modal, Order summary (~511)
+    ------------------------------------------------------------------------
+    11. RULE BỔ SUNG — gộp từ <style> riêng trong từng JSP                (~1181)
+        (Cart, Checkout, Home, Login, OrderDetail, ProductDetail...)
+    12. ADMIN / STAFF / MANAGER SHELL — bảng màu tối riêng biệt           (xem --admin-*)
+        (sidebar, topbar, stat card, data table, wizard, toggle switch...)
+   ----------------------------------------------------------------------------
+   LƯU Ý: Mục 11 từng bị trùng lặp gần 1/3 nội dung do quá trình gộp CSS
+   từ nhiều file JSP riêng lẻ không loại trùng — đã dọn sạch (giảm từ 3277
+   xuống còn ~2500 dòng), không đổi giá trị bất kỳ rule nào, chỉ xóa đúng
+   phần bị lặp lại y hệt.
+   ============================================================================ */
+
+  :root{
+    --paper:#F4EFE6;
+    --paper-deep:#EAE1D2;
+    --ink:#1F2B3D;
+    --ink-soft:#42506A;
+    --terracotta:#C2542D;
+    --terracotta-deep:#A4421F;
+    --moss:#5B6B4F;
+    --line:#D8CBB3;
+    --white:#FFFCF7;
+  }
+  *{box-sizing:border-box;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    font-feature-settings:"liga" 1;
+  }
+  h1,h2,h3,.brand,.display{
+    font-family:'Fraunces',serif;
+    letter-spacing:-0.01em;
+  }
+  .mono{font-family:'JetBrains Mono',monospace;}
+
+  a{text-decoration:none;}
+
+  /* ===== Inline SVG icons (thay Font Awesome) ===== */
+  .icon{
+    width:1em;height:1em;
+    display:inline-block;
+    vertical-align:-0.125em;
+    fill:none;
+    stroke:currentColor;
+    stroke-width:2;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    flex-shrink:0;
+  }
+  .icon.filled{fill:currentColor;stroke:none;}
+  .icon-lg{width:1.3em;height:1.3em;}
+
+  /* ===== Voucher section ===== */
+  .voucher-card{
+    background:var(--white);
+    border:1.5px dashed var(--terracotta);
+    border-radius:14px;
+    padding:0;
+    display:flex;
+    overflow:hidden;
+    height:100%;
+    position:relative;
+    transition:.2s;
+  }
+  .voucher-card:hover{box-shadow:0 14px 30px -10px rgba(31,43,61,.18);transform:translateY(-2px);}
+  .voucher-stub{
+    width:84px;
+    flex-shrink:0;
+    background:var(--ink);
+    color:var(--paper);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    position:relative;
+    padding:10px 4px;
+  }
+  .voucher-stub .pct{font-family:'Fraunces',serif;font-weight:700;font-size:1.5rem;line-height:1;}
+  .voucher-stub .pct small{font-size:.7rem;font-weight:600;}
+  .voucher-stub .off-label{font-size:.6rem;letter-spacing:.06em;text-transform:uppercase;opacity:.7;margin-top:2px;}
+  /* perforation dots between stub and body */
+  .voucher-stub::after{
+    content:"";
+    position:absolute;right:-1px;top:0;bottom:0;width:1px;
+    background-image:repeating-linear-gradient(0deg, var(--line) 0 6px, transparent 6px 12px);
+  }
+  .voucher-notch-top, .voucher-notch-bottom{
+    position:absolute;left:84px;
+    width:14px;height:14px;
+    background:var(--paper);
+    border-radius:50%;
+    transform:translateX(-50%);
+    z-index:2;
+  }
+  .voucher-notch-top{top:-7px;}
+  .voucher-notch-bottom{bottom:-7px;}
+  .voucher-body{
+    flex:1;
+    padding:14px 16px;
+    display:flex;flex-direction:column;justify-content:center;
+    min-width:0;
+  }
+  .voucher-body .title{font-weight:700;color:var(--ink);font-size:.92rem;line-height:1.25;}
+  .voucher-body .cond{font-size:.74rem;color:var(--ink-soft);margin-top:3px;}
+  .voucher-footer{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-top:9px;
+  }
+  .voucher-code{
+    font-family:'JetBrains Mono',monospace;
+    font-size:.72rem;font-weight:700;
+    background:var(--paper-deep);
+    color:var(--ink);
+    padding:3px 9px;
+    border-radius:6px;
+    letter-spacing:.03em;
+  }
+  .voucher-save-btn{
+    background:none;border:1px solid var(--terracotta);color:var(--terracotta);
+    font-size:.74rem;font-weight:700;
+    padding:4px 12px;border-radius:7px;
+    white-space:nowrap;
+    transition:.2s;
+  }
+  .voucher-save-btn:hover{background:var(--terracotta);color:#fff;}
+  .voucher-save-btn.saved{background:var(--moss);border-color:var(--moss);color:#fff;}
+
+  /* ===== Top promo banner (marquee) ===== */
+  .promo-banner{
+    background:var(--terracotta);
+    color:#fff;
+    overflow:hidden;
+    position:relative;
+    padding:9px 0;
+  }
+  .promo-banner .marquee-track{
+    display:flex;
+    width:max-content;
+    animation:scrollMarquee 26s linear infinite;
+  }
+  .promo-banner:hover .marquee-track{animation-play-state:paused;}
+  .promo-banner .marquee-group{
+    display:flex;
+    align-items:center;
+    flex-shrink:0;
+  }
+  .promo-banner .marquee-item{
+    display:flex;align-items:center;gap:8px;
+    font-size:.85rem;font-weight:600;
+    letter-spacing:.02em;
+    padding:0 32px;
+    white-space:nowrap;
+  }
+  .promo-banner .marquee-item i{color:#FBD9C4;}
+  .promo-banner .sep{opacity:.5;font-weight:400;}
+  @keyframes scrollMarquee{
+    from{transform:translateX(0);}
+    to{transform:translateX(-50%);}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .promo-banner .marquee-track{animation:none;overflow-x:auto;}
+  }
+
+  /* ===== Top utility bar ===== */
+  .util-bar{
+    background:var(--ink);
+    color:#D9D2C2;
+    font-size:.78rem;
+    padding:6px 0;
+    letter-spacing:.03em;
+  }
+  .util-bar a{color:#D9D2C2;opacity:.85;}
+  .util-bar a:hover{opacity:1;color:#fff;}
+
+  /* ===== Navbar ===== */
+  .navbar-shop{
+    background:var(--paper);
+    border-bottom:1px solid var(--line);
+    padding:18px 0;
+  }
+ .brand{
+    font-size:1.6rem;
+    font-weight:700;
+    color:var(--ink);
+    text-decoration:none;
+  }
+  .brand .dot{color:var(--terracotta);}
+  .nav-link-shop{
+    color:var(--ink-soft);
+    font-weight:500;
+    font-size:.95rem;
+    padding:8px 14px !important;
+    position:relative;
+    text-decoration:none;
+  }
+  .nav-link-shop:hover{color:var(--ink);}
+  .search-box{
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:8px 18px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    min-width:280px;
+  }
+  .search-box input{
+    border:none;background:transparent;outline:none;
+    font-size:.9rem;width:100%;color:var(--ink);
+  }
+  .search-box i{color:var(--ink-soft);}
+ .icon-btn{
+    width:42px;height:42px;border-radius:50%;
+    border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;
+    color:var(--ink);position:relative;background:var(--white);
+    transition:.2s;
+    text-decoration:none;
+  }
+  .icon-btn:hover{border-color:var(--terracotta);color:var(--terracotta);}
+  .cart-badge{
+    position:absolute;top:-6px;right:-6px;
+    background:var(--terracotta);color:#fff;
+    font-size:.65rem;font-weight:700;
+    width:20px;height:20px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+  }
+
+  /* ===== Hero ===== */
+  .hero{
+    background:var(--ink);
+    position:relative;
+    overflow:hidden;
+    padding:78px 0 90px;
+  }
+  .hero::before{
+    content:"";
+    position:absolute; inset:0;
+    background-image:
+      repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0px, rgba(255,255,255,.035) 1px, transparent 1px, transparent 28px);
+    pointer-events:none;
+  }
+  .hero-eyebrow{
+    color:#E8A87C;
+    font-size:.8rem;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    font-weight:600;
+  }
+  .hero h1{
+    color:var(--paper);
+    font-size:3.4rem;
+    line-height:1.08;
+    font-weight:700;
+    max-width:620px;
+  }
+  .hero h1 em{
+    font-style:italic;
+    color:var(--terracotta);
+  }
+  .hero p.lead-shop{
+    color:#B9C0CE;
+    font-size:1.08rem;
+    max-width:480px;
+    margin-top:18px;
+  }
+  .btn-terracotta{
+    background:var(--terracotta);
+    border:none;color:#fff;
+    padding:13px 30px;
+    border-radius:8px;
+    font-weight:600;
+    font-size:.95rem;
+    transition:.2s;
+  }
+  .btn-terracotta:hover{background:var(--terracotta-deep);color:#fff;}
+  .btn-outline-paper{
+    border:1px solid #4A5A75;
+    color:var(--paper);
+    padding:13px 28px;
+    border-radius:8px;
+    font-weight:600;
+    font-size:.95rem;
+  }
+  .btn-outline-paper:hover{border-color:var(--paper);color:#fff;background:rgba(255,255,255,.05);}
+
+  .hero-stack{
+    position:relative;
+    height:380px;
+  }
+  .stack-card{
+    position:absolute;
+    border-radius:14px;
+    box-shadow:0 25px 50px -12px rgba(0,0,0,.5);
+    display:flex;flex-direction:column;justify-content:flex-end;
+    padding:18px;
+    color:#fff;
+  }
+  .stack-card .tag{
+    font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;
+    font-weight:700;opacity:.85;
+  }
+  .stack-card .ttl{font-family:'Fraunces',serif;font-size:1.15rem;font-weight:600;margin-top:2px;}
+  .stack-card .price{font-family:'JetBrains Mono',monospace;font-size:.85rem;margin-top:6px;opacity:.9;}
+  .card-1{width:230px;height:300px;background:linear-gradient(160deg,#C2542D,#7A2E14);top:10px;left:40px;transform:rotate(-6deg);}
+  .card-2{width:230px;height:300px;background:linear-gradient(160deg,#3D4F6B,#1F2B3D);top:40px;left:230px;transform:rotate(4deg);z-index:2;}
+  .card-3{width:170px;height:220px;background:linear-gradient(160deg,#6B7A52,#3F4A30);top:0px;right:10px;transform:rotate(10deg);}
+
+  /* ===== Section labels ===== */
+  .section-pad{padding:70px 0;}
+  .eyebrow-line{
+    display:flex;align-items:center;gap:14px;
+    margin-bottom:8px;
+  }
+  .eyebrow-line .ln{height:1px;background:var(--line);flex:1;}
+  .eyebrow-line span{
+    font-size:.78rem;letter-spacing:.15em;text-transform:uppercase;
+    color:var(--terracotta);font-weight:700;
+  }
+  .section-title{
+    font-size:2rem;font-weight:700;color:var(--ink);
+  }
+
+  /* ===== Category pills ===== */
+  .cat-card{
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:26px 20px;
+    text-align:center;
+    height:100%;
+    transition:.2s;
+    display:block;
+    text-decoration:none;
+  }
+  .cat-card:hover{transform:translateY(-4px);box-shadow:0 14px 30px -10px rgba(31,43,61,.18);border-color:var(--terracotta);}
+  .cat-icon{
+    width:58px;height:58px;border-radius:50%;
+    background:var(--paper-deep);
+    display:flex;align-items:center;justify-content:center;
+    margin:0 auto 14px;font-size:1.4rem;color:var(--terracotta);
+  }
+  .cat-card .name{font-weight:600;color:var(--ink);font-size:.95rem;}
+  .cat-card .count{font-size:.78rem;color:var(--ink-soft);margin-top:2px;}
+
+  /* ===== Product card ===== */
+  .product-card{
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:16px;
+    overflow:hidden;
+    height:100%;
+    transition:.25s;
+  }
+  .product-card:hover{box-shadow:0 18px 36px -14px rgba(31,43,61,.2);transform:translateY(-3px);}
+  .product-thumb{
+    height:190px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:2.6rem;
+    position:relative;
+  }
+  .product-thumb .badge-new{
+    position:absolute;top:10px;left:10px;
+    background:var(--moss);color:#fff;
+    font-size:.68rem;font-weight:700;
+    padding:4px 10px;border-radius:999px;
+    letter-spacing:.04em;
+  }
+  .product-thumb .badge-sale{
+    position:absolute;top:10px;left:10px;
+    background:var(--terracotta);color:#fff;
+    font-size:.68rem;font-weight:700;
+    padding:4px 10px;border-radius:999px;
+  }
+  .wish-btn{
+    position:absolute;top:10px;right:10px;
+    width:34px;height:34px;border-radius:50%;
+    background:rgba(255,255,255,.9);
+    display:flex;align-items:center;justify-content:center;
+    color:var(--ink-soft);border:none;
+  }
+  .wish-btn:hover{color:var(--terracotta);}
+  .product-body{padding:16px 18px 18px;}
+  .product-cat{font-size:.72rem;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.06em;font-weight:600;}
+  .product-name{font-weight:600;color:var(--ink);font-size:.98rem;margin-top:4px;line-height:1.3;}
+  .product-author{font-size:.8rem;color:var(--ink-soft);margin-top:2px;}
+  .stars{color:#D9A441;font-size:.78rem;margin-top:6px;}
+  .stars .count{color:var(--ink-soft);margin-left:4px;}
+  .price-row{display:flex;align-items:center;justify-content:space-between;margin-top:12px;}
+  .price-now{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--terracotta);font-size:1.02rem;}
+  .price-old{font-family:'JetBrains Mono',monospace;text-decoration:line-through;color:#A8A096;font-size:.8rem;margin-left:6px;}
+  .add-btn{
+    width:38px;height:38px;border-radius:10px;
+    background:var(--ink);color:var(--paper);
+    border:none;display:flex;align-items:center;justify-content:center;
+    transition:.2s;
+  }
+  .add-btn:hover{background:var(--terracotta);}
+
+  /* thumb backgrounds per category */
+  .thumb-fiction{background:linear-gradient(135deg,#EAD9C2,#D8B98E);color:#7A4B23;}
+  .thumb-kid{background:linear-gradient(135deg,#FBE3DC,#F2B6A3);color:#A4421F;}
+  .thumb-skill{background:linear-gradient(135deg,#D9E2D3,#A9BE9C);color:#4A5A3A;}
+  .thumb-vpp{background:linear-gradient(135deg,#D6DEE8,#A9B9CF);color:#2D3F5C;}
+  .thumb-pen{background:linear-gradient(135deg,#E9E2F1,#C5B6DD);color:#5A4080;}
+  .thumb-note{background:linear-gradient(135deg,#FBEFC0,#EBD27E);color:#7A5E12;}
+
+  /* ===== Banner strip ===== */
+  .promo-strip{
+    background:var(--paper-deep);
+    border:1px dashed var(--terracotta);
+    border-radius:18px;
+    padding:34px 40px;
+    display:flex;align-items:center;justify-content:space-between;
+    gap:24px;
+  }
+  .promo-strip h3{font-size:1.5rem;margin:0;color:var(--ink);}
+  .promo-strip p{margin:4px 0 0;color:var(--ink-soft);font-size:.92rem;}
+
+  /* ===== Newsletter ===== */
+  .newsletter{
+    background:var(--ink);
+    border-radius:24px;
+    padding:54px 50px;
+    color:var(--paper);
+    position:relative;
+    overflow:hidden;
+  }
+  .newsletter h2{font-size:1.9rem;max-width:480px;}
+  .newsletter p{color:#AEB6C4;max-width:440px;}
+  .nl-form{
+    background:var(--white);
+    border-radius:999px;
+    padding:6px 6px 6px 22px;
+    display:flex;align-items:center;
+    max-width:430px;
+  }
+  .nl-form input{
+    border:none;outline:none;background:transparent;
+    flex:1;font-size:.9rem;color:var(--ink);
+  }
+  .nl-form button{
+    background:var(--terracotta);color:#fff;border:none;
+    border-radius:999px;padding:10px 22px;font-weight:600;font-size:.88rem;
+    white-space:nowrap;
+  }
+
+  /* ===== Footer ===== */
+  footer{
+    background:var(--paper-deep);
+    border-top:1px solid var(--line);
+    padding:54px 0 24px;
+    margin-top:40px;
+  }
+  footer h6{
+    font-size:.82rem;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--ink);font-weight:700;margin-bottom:16px;
+  }
+  footer a{color:var(--ink-soft);font-size:.9rem;display:block;margin-bottom:10px;}
+  footer a:hover{color:var(--terracotta);}
+  .footer-bottom{
+    border-top:1px solid var(--line);
+    margin-top:30px;padding-top:20px;
+    font-size:.8rem;color:var(--ink-soft);
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;
+  }
+  .social-dot{
+    width:36px;height:36px;border-radius:50%;
+    background:var(--white);border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;
+    color:var(--ink);margin-right:8px;
+  }
+  .social-dot:hover{background:var(--terracotta);color:#fff;border-color:var(--terracotta);}
+
+  @media (max-width:991px){
+    .hero h1{font-size:2.4rem;}
+    .hero-stack{display:none;}
+    .search-box{display:none;}
+  }
+
+  /* ---- Category Strip (cuộn ngang) ---- */
+  .cat-strip-wrap{position:relative;}
+  .cat-strip{
+    display:flex;gap:14px;
+    overflow-x:auto;
+    scroll-behavior:smooth;
+    padding-bottom:6px;
+    scrollbar-width:none;
+  }
+  .cat-strip::-webkit-scrollbar{display:none;}
+  .cat-strip-item{
+    flex:0 0 auto;
+    width:128px;
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:18px 10px;
+    text-align:center;
+    transition:.2s;
+    text-decoration:none;
+    display:block;
+  }
+  .cat-strip-item:hover{border-color:var(--terracotta);transform:translateY(-3px);box-shadow:0 12px 26px -10px rgba(31,43,61,.16);}
+  .cat-strip-item .cat-icon{width:50px;height:50px;margin:0 auto 10px;}
+  .cat-strip-item .name{font-weight:600;font-size:.85rem;color:var(--ink);}
+  .cat-strip-nav{
+    width:38px;height:38px;border-radius:50%;
+    background:var(--white);border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;
+    color:var(--ink);position:absolute;top:40%;
+    transform:translateY(-50%);z-index:3;cursor:pointer;
+    box-shadow:0 6px 16px -6px rgba(31,43,61,.2);
+  }
+  .cat-strip-nav:hover{border-color:var(--terracotta);color:var(--terracotta);}
+  .cat-strip-nav.prev{left:-18px;}
+  .cat-strip-nav.next{right:-18px;}
+  @media (max-width:767px){.cat-strip-nav{display:none;}}
+
+  /* ---- New Arrivals badge ribbon ---- */
+  .new-arrival-card{position:relative;}
+  .ribbon-new{
+    position:absolute;top:14px;left:-6px;z-index:3;
+    background:var(--moss);color:#fff;
+    font-size:.66rem;font-weight:700;letter-spacing:.04em;
+    padding:4px 12px 4px 10px;
+    clip-path:polygon(0 0,100% 0,100% 100%,0 100%,8px 50%);
+  }
+
+  /* =========================================================
+     CATALOG / SEARCH RESULT PAGE
+  ========================================================= */
+  .breadcrumb-shop{font-size:.85rem;color:var(--ink-soft);padding:16px 0;}
+  .breadcrumb-shop a{color:var(--ink-soft);text-decoration:none;}
+  .breadcrumb-shop a:hover{color:var(--terracotta);}
+  .breadcrumb-shop .sep{margin:0 6px;opacity:.5;}
+  .breadcrumb-shop .current{color:var(--ink);font-weight:600;}
+
+  .filter-panel{
+    background:var(--white);border:1px solid var(--line);
+    border-radius:14px;padding:20px;
+  }
+  .filter-group{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:16px;}
+  .filter-group:last-child{border-bottom:none;margin-bottom:0;}
+  .filter-group-title{font-weight:700;font-size:.88rem;color:var(--ink);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;}
+  .filter-check{display:flex;align-items:center;gap:9px;font-size:.86rem;color:var(--ink-soft);padding:5px 0;cursor:pointer;}
+  .filter-check input{accent-color:var(--terracotta);width:16px;height:16px;}
+  .filter-check:hover{color:var(--ink);}
+  .filter-check .ct{margin-left:auto;color:#A8A096;font-size:.78rem;}
+  .price-range-inputs{display:flex;align-items:center;gap:8px;}
+  .price-range-inputs input{
+    width:100%;border:1px solid var(--line);border-radius:8px;
+    padding:8px 10px;font-size:.82rem;font-family:'JetBrains Mono',monospace;
+    background:var(--paper);
+  }
+  .rating-filter-row{display:flex;align-items:center;gap:6px;font-size:.84rem;color:var(--ink-soft);padding:5px 0;cursor:pointer;}
+  .rating-filter-row .stars-mini{color:#D9A441;font-size:.8rem;}
+
+  .toolbar-shop{
+    display:flex;align-items:center;justify-content:space-between;
+    background:var(--white);border:1px solid var(--line);
+    border-radius:12px;padding:12px 16px;margin-bottom:20px;
+    flex-wrap:wrap;gap:10px;
+  }
+  .sort-select{
+    border:1px solid var(--line);border-radius:8px;
+    padding:8px 12px;font-size:.85rem;background:var(--paper);color:var(--ink);
+  }
+  .view-toggle{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;}
+  .view-toggle button{
+    background:var(--white);border:none;padding:8px 10px;color:var(--ink-soft);
+  }
+  .view-toggle button.active{background:var(--ink);color:var(--paper);}
+
+  .active-filter-chip{
+    display:inline-flex;align-items:center;gap:6px;
+    background:var(--paper-deep);border:1px solid var(--line);
+    border-radius:999px;padding:5px 12px;font-size:.8rem;color:var(--ink);
+  }
+  .active-filter-chip svg{width:13px;height:13px;cursor:pointer;}
+
+  .pagination-shop{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:32px;}
+  .page-btn{
+    width:38px;height:38px;border-radius:9px;
+    display:flex;align-items:center;justify-content:center;
+    border:1px solid var(--line);background:var(--white);
+    color:var(--ink-soft);font-weight:600;font-size:.88rem;
+  }
+  .page-btn.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+  .page-btn:hover:not(.active){border-color:var(--terracotta);color:var(--terracotta);}
+
+  .out-of-stock-overlay{
+    position:absolute;inset:0;background:rgba(244,239,230,.78);
+    display:flex;align-items:center;justify-content:center;
+    z-index:2;border-radius:16px 16px 0 0;
+  }
+  .out-of-stock-overlay span{
+    background:var(--ink);color:var(--paper);
+    font-size:.72rem;font-weight:700;letter-spacing:.04em;
+    padding:5px 14px;border-radius:999px;text-transform:uppercase;
+  }
+  .product-card.disabled .product-thumb{position:relative;}
+
+  /* =========================================================
+     PRODUCT DETAIL PAGE
+  ========================================================= */
+  .gallery-main{
+    background:var(--white);border:1px solid var(--line);border-radius:18px;
+    height:420px;display:flex;align-items:center;justify-content:center;
+    position:relative;overflow:hidden;
+  }
+  .gallery-thumbs{display:flex;gap:10px;margin-top:12px;}
+  .gallery-thumb{
+    width:72px;height:72px;border-radius:10px;
+    border:2px solid var(--line);background:var(--white);
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+  }
+  .gallery-thumb.active{border-color:var(--terracotta);}
+
+  .pd-rating-row{display:flex;align-items:center;gap:10px;font-size:.88rem;color:var(--ink-soft);}
+  .pd-rating-row .stars{color:#D9A441;}
+  .pd-price-block{
+    background:var(--paper-deep);border-radius:14px;padding:18px 20px;margin:18px 0;
+  }
+  .pd-price-now{font-family:'JetBrains Mono',monospace;font-size:1.9rem;font-weight:700;color:var(--terracotta);}
+  .pd-price-old{font-family:'JetBrains Mono',monospace;text-decoration:line-through;color:#A8A096;font-size:1.05rem;margin-left:10px;}
+  .pd-save-tag{
+    display:inline-block;background:var(--moss);color:#fff;font-size:.74rem;font-weight:700;
+    padding:3px 10px;border-radius:999px;margin-left:8px;vertical-align:middle;
+  }
+  .pd-attrs{font-size:.88rem;color:var(--ink-soft);line-height:1.9;}
+  .pd-attrs strong{color:var(--ink);font-weight:600;}
+
+  /* ---- Stock status (product detail) ---- */
+  .pd-stock-row{
+    display:flex;align-items:center;gap:8px;margin-top:10px;font-size:.84rem;font-weight:600;
+  }
+  .pd-stock-row.in-stock{color:var(--moss);}
+  .pd-stock-row.low-stock{color:#B8762E;}
+  .pd-stock-row.out-stock{color:#C24545;}
+  .pd-stock-bar-track{
+    height:5px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:8px;max-width:220px;
+  }
+  .pd-stock-bar-fill{height:100%;border-radius:99px;}
+  .pd-stock-bar-fill.ok{background:var(--moss);}
+  .pd-stock-bar-fill.low{background:#D9A441;}
+  .pd-stock-note{font-size:.76rem;color:var(--ink-soft);margin-top:5px;font-weight:400;}
+
+  .out-of-stock-banner{
+    display:flex;align-items:center;gap:10px;
+    background:#F4DEDC;color:#9C2E24;border-radius:10px;padding:11px 14px;
+    font-size:.85rem;font-weight:600;margin-top:8px;
+  }
+
+  .qty-stepper.disabled-stepper{opacity:.45;pointer-events:none;}
+  .qty-stepper button{
+    width:38px;height:42px;background:var(--white);border:none;color:var(--ink);font-size:1.1rem;
+  }
+  .qty-stepper button:hover{background:var(--paper-deep);}
+  .qty-stepper input{
+    width:50px;text-align:center;border:none;border-left:1px solid var(--line);border-right:1px solid var(--line);
+    font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--ink);
+  }
+  .qty-stepper button:disabled{opacity:.4;cursor:not-allowed;}
+
+  .btn-disabled-stock{
+    background:var(--line) !important;color:var(--ink-soft) !important;
+    cursor:not-allowed !important;pointer-events:none;
+  }
+
+  .stock-demo-toggle{
+    display:flex;gap:8px;margin-bottom:18px;padding:10px 14px;
+    background:var(--paper-deep);border-radius:10px;font-size:.8rem;align-items:center;
+  }
+  .stock-demo-toggle button{
+    border:1px solid var(--line);background:var(--white);border-radius:7px;
+    padding:5px 12px;font-size:.78rem;font-weight:600;color:var(--ink-soft);
+  }
+  .stock-demo-toggle button.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+
+  .trust-badges-row{display:flex;gap:18px;margin-top:20px;flex-wrap:wrap;}
+  .trust-badge{display:flex;align-items:center;gap:8px;font-size:.8rem;color:var(--ink-soft);}
+  .trust-badge svg{color:var(--moss);}
+
+  .tabs-shop{display:flex;gap:6px;border-bottom:1px solid var(--line);margin-top:36px;}
+  .tab-btn{
+    background:none;border:none;padding:12px 18px;font-weight:600;font-size:.92rem;
+    color:var(--ink-soft);border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer;
+  }
+  .tab-btn.active{color:var(--terracotta);border-bottom-color:var(--terracotta);}
+  .tab-panel{display:none;padding:24px 0;}
+  .tab-panel.active{display:block;}
+
+  .rating-bar-row{display:flex;align-items:center;gap:10px;font-size:.82rem;color:var(--ink-soft);margin-bottom:6px;}
+  .rating-bar-track{flex:1;height:7px;background:var(--paper-deep);border-radius:99px;overflow:hidden;}
+  .rating-bar-fill{height:100%;background:#D9A441;}
+  .review-item{border-bottom:1px solid var(--line);padding:18px 0;}
+  .review-item:last-child{border-bottom:none;}
+  .review-avatar{
+    width:38px;height:38px;border-radius:50%;background:var(--paper-deep);
+    display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--ink-soft);font-size:.85rem;
+  }
+  .staff-reply-box{
+    background:var(--paper-deep);border-radius:10px;padding:12px 14px;margin-top:10px;font-size:.85rem;color:var(--ink-soft);
+  }
+  .staff-reply-box .reply-author{font-weight:700;color:var(--ink);font-size:.82rem;}
+
+  /* =========================================================
+     CART PAGE
+  ========================================================= */
+  .cart-line{
+    display:flex;gap:16px;align-items:center;
+    background:var(--white);border:1px solid var(--line);border-radius:14px;
+    padding:16px;margin-bottom:14px;
+  }
+  .cart-line.dimmed{opacity:.55;}
+  .cart-check{width:18px;height:18px;accent-color:var(--terracotta);flex-shrink:0;}
+  .cart-thumb{
+    width:72px;height:72px;border-radius:10px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .cart-line-info{flex:1;min-width:0;}
+  .cart-line-name{font-weight:600;color:var(--ink);font-size:.92rem;}
+  .cart-line-meta{font-size:.78rem;color:var(--ink-soft);margin-top:2px;}
+  .cart-line-stay-note{font-size:.72rem;color:var(--terracotta);margin-top:3px;font-weight:600;}
+  .cart-line-price{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--ink);min-width:90px;text-align:right;}
+  .qty-stepper-sm{display:flex;align-items:center;border:1px solid var(--line);border-radius:10px;overflow:hidden;flex-shrink:0;}
+  .qty-stepper-sm button{width:42px;min-width:42px;flex-shrink:0;height:46px;background:var(--white);border:none;color:var(--ink);font-size:1.1rem;}
+  .qty-stepper-sm button:hover{background:var(--paper-deep);}
+  .qty-stepper-sm input{width:80px;min-width:80px;flex-shrink:0;height:46px;box-sizing:border-box;text-align:center;border:none;border-left:1px solid var(--line);border-right:1px solid var(--line);font-size:1.05rem;font-weight:700;padding:0;}
+  .remove-line-btn{color:#A8A096;background:none;border:none;flex-shrink:0;}
+  .remove-line-btn:hover{color:#C24545;}
+
+  .select-all-bar{
+    display:flex;align-items:center;justify-content:space-between;
+    background:var(--paper-deep);border-radius:12px;padding:13px 16px;margin-bottom:16px;font-size:.88rem;
+  }
+  .select-all-bar label{display:flex;align-items:center;gap:10px;font-weight:600;color:var(--ink);cursor:pointer;}
+
+  /* =========================================================
+     CHECKOUT / PLACE ORDER PAGE
+  ========================================================= */
+  .stepper{display:flex;align-items:center;justify-content:center;gap:0;margin:8px 0 36px;}
+  .step-item{display:flex;align-items:center;gap:10px;}
+  .step-circle{
+    width:32px;height:32px;border-radius:50%;
+    background:var(--paper-deep);color:var(--ink-soft);
+    display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-size:.85rem;border:2px solid var(--line);
+  }
+  .step-item.active .step-circle{background:var(--terracotta);color:#fff;border-color:var(--terracotta);}
+  .step-item.done .step-circle{background:var(--moss);color:#fff;border-color:var(--moss);}
+  .step-label{font-size:.85rem;font-weight:600;color:var(--ink-soft);}
+  .step-item.active .step-label{color:var(--ink);}
+  .step-divider{width:64px;height:2px;background:var(--line);margin:0 14px;}
+
+  .panel{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:24px;margin-bottom:20px;}
+  .panel-title{font-weight:700;font-size:1.02rem;color:var(--ink);display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+  .panel-title svg{color:var(--terracotta);}
+
+  .addr-card{border:1.5px solid var(--terracotta);border-radius:12px;padding:14px 16px;background:rgba(194,84,45,.04);}
+  .addr-card .name-row{font-weight:700;color:var(--ink);font-size:.92rem;}
+  .addr-card .tag-default{background:var(--terracotta);color:#fff;font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:999px;margin-left:8px;}
+  .addr-card .addr-text{font-size:.85rem;color:var(--ink-soft);margin-top:4px;margin-bottom:10px}
+
+  .pay-method-option{
+    display:flex;align-items:center;gap:12px;
+    border:1.5px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px;cursor:pointer;
+  }
+  .pay-method-option.selected{border-color:var(--terracotta);background:rgba(194,84,45,.04);}
+  .pay-method-option input{accent-color:var(--terracotta);width:17px;height:17px;}
+  .pay-method-option .pm-icon{width:38px;height:38px;border-radius:9px;background:var(--paper-deep);display:flex;align-items:center;justify-content:center;color:var(--ink);flex-shrink:0;}
+  .pay-method-option .pm-name{font-weight:600;font-size:.9rem;color:var(--ink);}
+  .pay-method-option .pm-desc{font-size:.78rem;color:var(--ink-soft);}
+
+  .qr-panel{
+    background:var(--paper-deep);border-radius:14px;padding:24px;text-align:center;margin-top:16px;
+  }
+  .qr-box{
+    width:180px;height:180px;background:#fff;border-radius:12px;margin:0 auto 16px;
+    display:flex;align-items:center;justify-content:center;border:1px solid var(--line);
+  }
+  .qr-timer{
+    display:inline-flex;align-items:center;gap:6px;
+    background:var(--ink);color:var(--paper);font-family:'JetBrains Mono',monospace;
+    font-weight:700;padding:6px 16px;border-radius:999px;font-size:.92rem;
+  }
+
+  .discount-input-row{display:flex;gap:8px;}
+  .discount-input-row input{flex:1;}
+  .applied-discount-tag{
+    display:flex;align-items:center;justify-content:space-between;
+    background:rgba(91,107,79,.1);border:1px dashed var(--moss);border-radius:9px;
+    padding:9px 12px;margin-top:8px;font-size:.84rem;
+  }
+  .applied-discount-tag .code{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--moss);}
+  .applied-discount-tag button{background:none;border:none;color:#A8A096;}
+  .applied-discount-tag button:hover{color:#C24545;}
+
+  .order-success-icon{
+    width:84px;height:84px;border-radius:50%;background:var(--moss);
+    display:flex;align-items:center;justify-content:center;margin:0 auto 22px;
+  }
+  .order-success-icon svg{width:42px;height:42px;color:#fff;}
+
+  /* ---- QR Payment Modal (xuất hiện sau khi bấm "Đặt hàng") ---- */
+  .qr-modal-backdrop{
+    position:fixed;inset:0;background:rgba(31,43,61,.55);
+    display:none;align-items:center;justify-content:center;
+    z-index:1000;padding:20px;backdrop-filter:blur(2px);
+  }
+  .qr-modal-backdrop.open{display:flex;}
+  .qr-modal{
+    background:var(--white);border-radius:22px;
+    max-width:380px;width:100%;
+    padding:30px 28px 26px;
+    text-align:center;
+    position:relative;
+    box-shadow:0 30px 60px -15px rgba(0,0,0,.35);
+    animation:qrPop .25s ease;
+  }
+  @keyframes qrPop{from{transform:scale(.92);opacity:0;}to{transform:scale(1);opacity:1;}}
+  .qr-modal-close{
+    position:absolute;top:14px;right:14px;
+    width:32px;height:32px;border-radius:50%;
+    background:var(--paper-deep);border:none;color:var(--ink-soft);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .qr-modal-close:hover{background:var(--line);color:var(--ink);}
+  .qr-modal .merchant-row{
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    font-weight:700;color:var(--ink);font-size:.95rem;margin-bottom:18px;
+  }
+  .qr-modal .qr-frame{
+    width:200px;height:200px;margin:0 auto 18px;
+    background:#fff;border:2px solid var(--ink);border-radius:16px;
+    display:flex;align-items:center;justify-content:center;
+    position:relative;
+  }
+  .qr-modal .qr-frame::before,.qr-modal .qr-frame::after{
+    content:"";position:absolute;width:22px;height:22px;
+    border-color:var(--terracotta);
+  }
+  .qr-modal .qr-amount{
+    font-family:'JetBrains Mono',monospace;font-size:1.5rem;font-weight:700;
+    color:var(--terracotta);margin-bottom:4px;
+  }
+  .qr-modal .qr-order-code{font-size:.78rem;color:var(--ink-soft);margin-bottom:18px;}
+  .qr-modal .qr-timer-lg{
+    display:inline-flex;align-items:center;gap:7px;
+    background:var(--ink);color:var(--paper);
+    font-family:'JetBrains Mono',monospace;font-weight:700;
+    padding:8px 20px;border-radius:999px;font-size:1.02rem;margin-bottom:16px;
+  }
+  .qr-modal .qr-steps{
+    text-align:left;background:var(--paper-deep);border-radius:12px;
+    padding:14px 16px;font-size:.8rem;color:var(--ink-soft);line-height:1.7;
+  }
+  .qr-modal .qr-steps b{color:var(--ink);}
+  .qr-status-row{
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    font-size:.82rem;color:var(--ink-soft);margin-top:16px;
+  }
+  .qr-status-row .pulse-dot{
+    width:8px;height:8px;border-radius:50%;background:var(--terracotta);
+    animation:pulseDot 1.4s infinite;
+  }
+  @keyframes pulseDot{0%,100%{opacity:1;}50%{opacity:.25;}}
+
+  /* ---- Order summary card (làm đẹp lại) ---- */
+  .summary-card-pretty{
+    background:linear-gradient(165deg,var(--ink) 0%,#15202F 100%);
+    border-radius:18px;padding:26px 24px;color:var(--paper);
+    position:relative;overflow:hidden;
+  }
+  .summary-card-pretty::before{
+    content:"";position:absolute;top:-40px;right:-40px;
+    width:140px;height:140px;border-radius:50%;
+    background:rgba(194,84,45,.18);
+  }
+  .summary-card-pretty .sc-title{
+    font-weight:700;font-size:1rem;display:flex;align-items:center;gap:9px;
+    margin-bottom:18px;position:relative;z-index:1;
+  }
+  .summary-card-pretty .sc-row{
+    display:flex;justify-content:space-between;font-size:.86rem;
+    color:#B9C0CE;padding:8px 0;position:relative;z-index:1;
+  }
+  .summary-card-pretty .sc-row .val{font-family:'JetBrains Mono',monospace;color:#E8E4DC;}
+  .summary-card-pretty .sc-row.discount .val{color:#8FBF8A;}
+  .summary-card-pretty .sc-divider{height:1px;background:rgba(255,255,255,.12);margin:10px 0;}
+  .summary-card-pretty .sc-total{
+    display:flex;justify-content:space-between;align-items:baseline;
+    position:relative;z-index:1;margin-top:6px;
+  }
+  .summary-card-pretty .sc-total .lbl{font-size:.88rem;color:#B9C0CE;font-weight:600;}
+  .summary-card-pretty .sc-total .amt{
+    font-family:'JetBrains Mono',monospace;font-size:1.55rem;font-weight:700;
+    color:#F2A878;
+  }
+  .summary-card-pretty .sc-savings{
+    display:inline-flex;align-items:center;gap:6px;
+    background:rgba(143,191,138,.15);color:#A8D4A3;
+    font-size:.76rem;font-weight:600;padding:5px 12px;border-radius:999px;
+    margin-top:12px;position:relative;z-index:1;
+  }
+  .btn-confirm-order{
+    width:100%;background:var(--terracotta);color:#fff;border:none;
+    padding:15px;border-radius:12px;font-weight:700;font-size:.98rem;
+    margin-top:20px;display:flex;align-items:center;justify-content:center;gap:9px;
+    transition:.2s;position:relative;z-index:1;
+  }
+  .btn-confirm-order:hover{background:var(--terracotta-deep);}
+  .btn-confirm-order:disabled{opacity:.7;cursor:not-allowed;}
+
+  /* =========================================================
+     AUTH PAGES (Register / Login)
+  ========================================================= */
+  .auth-shell{min-height:calc(100vh - 250px);display:flex;align-items:center;padding:50px 0;}
+  .auth-side{
+    background:linear-gradient(165deg,var(--ink) 0%,#15202F 100%);
+    border-radius:24px;padding:48px 40px;color:var(--paper);
+    height:100%;position:relative;overflow:hidden;
+    display:flex;flex-direction:column;justify-content:center;
+  }
+  .auth-side::before{
+    content:"";position:absolute;top:-60px;right:-60px;
+    width:220px;height:220px;border-radius:50%;
+    background:rgba(194,84,45,.18);
+  }
+  .auth-side .quote-icon{width:36px;height:36px;color:var(--terracotta);position:relative;z-index:1;}
+  .auth-side h3{font-size:1.5rem;margin-top:18px;position:relative;z-index:1;max-width:380px;}
+  .auth-side p{color:#B9C0CE;font-size:.92rem;margin-top:10px;position:relative;z-index:1;max-width:360px;}
+  .auth-side .stat-row{display:flex;gap:28px;margin-top:32px;position:relative;z-index:1;}
+  .auth-side .stat-row .num{font-family:'Fraunces',serif;font-size:1.6rem;font-weight:700;color:var(--terracotta);}
+  .auth-side .stat-row .lbl{font-size:.76rem;color:#8B96A8;margin-top:2px;}
+
+  .auth-card-shop{
+    background:var(--white);border:1px solid var(--line);border-radius:22px;
+    padding:42px 40px;max-width:460px;margin:0 auto;
+  }
+  .auth-card-shop h1{font-size:1.55rem;margin-bottom:6px;}
+  .auth-card-shop .sub{color:var(--ink-soft);font-size:.9rem;margin-bottom:28px;}
+
+  .form-group-shop{margin-bottom:18px;}
+  .required-mark{color:var(--terracotta);}
+
+  .pw-strength-track{display:flex;gap:4px;margin-top:8px;}
+  .pw-strength-track .seg{height:4px;flex:1;border-radius:99px;background:var(--line);}
+  .pw-strength-track .seg.weak{background:#C24545;}
+  .pw-strength-track .seg.medium{background:#D9A441;}
+  .pw-strength-track .seg.strong{background:var(--moss);}
+  .pw-strength-label{font-size:.74rem;color:var(--ink-soft);margin-top:5px;display:flex;justify-content:space-between;}
+  .pw-rule-list{font-size:.74rem;color:var(--ink-soft);margin-top:8px;display:flex;flex-direction:column;gap:4px;}
+  .pw-rule-list .rule{display:flex;align-items:center;gap:6px;}
+  .pw-rule-list .rule svg{width:13px;height:13px;flex-shrink:0;color:#A8A096;}
+  .pw-rule-list .rule.met{color:var(--moss);}
+  .pw-rule-list .rule.met svg{color:var(--moss);}
+
+  .alert-banner{
+    display:flex;align-items:flex-start;gap:10px;
+    border-radius:10px;padding:12px 14px;font-size:.82rem;margin-bottom:18px;
+  }
+/*  .alert-banner.error{background:#F4DEDC;color:#9C2E24;}
+  .alert-banner.success{background:#DEEFE0;color:#2E6B3E;}*/
+  .alert-banner svg{flex-shrink:0;margin-top:1px;width:16px;}
+
+  .auth-divider{display:flex;align-items:center;gap:12px;margin:22px 0;color:var(--ink-soft);font-size:.8rem;}
+  .auth-divider::before,.auth-divider::after{content:"";flex:1;height:1px;background:var(--line);}
+
+  .auth-footer-link{text-align:center;font-size:.88rem;color:var(--ink-soft);margin-top:22px;}
+  .auth-footer-link a{color:var(--terracotta);font-weight:600;text-decoration:none;}
+  .auth-footer-link a:hover{text-decoration:underline;}
+
+  .verify-pending-box{
+    background:var(--paper-deep);border-radius:14px;padding:18px 20px;
+    display:flex;gap:14px;align-items:flex-start;margin-top:20px;
+  }
+  .verify-pending-box svg{color:var(--terracotta);width:22px;flex-shrink:0;margin-top:2px;}
+  .verify-pending-box .vt{font-weight:700;font-size:.88rem;color:var(--ink);}
+  .verify-pending-box .vd{font-size:.82rem;color:var(--ink-soft);margin-top:3px;line-height:1.6;}
+
+  .lockout-box{
+    background:#F4DEDC;border-radius:14px;padding:16px 18px;
+    display:flex;gap:13px;align-items:flex-start;margin-bottom:18px;
+  }
+  .lockout-box svg{color:#9C2E24;width:22px;flex-shrink:0;margin-top:2px;}
+  .lockout-box .lt{font-weight:700;font-size:.88rem;color:#9C2E24;}
+  .lockout-box .ld{font-size:.82rem;color:#A4392F;margin-top:3px;line-height:1.6;}
+  .lockout-box .countdown-mono{
+    font-family:'JetBrains Mono',monospace;font-weight:700;font-size:1rem;
+    background:#fff;display:inline-block;padding:2px 10px;border-radius:7px;margin-top:6px;
+  }
+  .attempt-warning{
+    font-size:.78rem;color:#A4392F;margin-top:6px;display:flex;align-items:center;gap:5px;
+  }
+  .remember-row{display:flex;align-items:center;justify-content:space-between;margin:14px 0 22px;}
+  .remember-row label{display:flex;align-items:center;gap:8px;font-size:.86rem;color:var(--ink-soft);cursor:pointer;}
+  .remember-row input{accent-color:var(--terracotta);width:16px;height:16px;}
+  .remember-row a{font-size:.86rem;color:var(--terracotta);font-weight:600;text-decoration:none;}
+  .remember-row a:hover{text-decoration:underline;}
+
+  /* =========================================================
+     ORDER HISTORY LIST PAGE
+  ========================================================= */
+  .order-tabs{display:flex;gap:8px;overflow-x:auto;margin-bottom:24px;padding-bottom:2px;}
+  .order-tab{
+    flex:0 0 auto;background:var(--white);border:1px solid var(--line);
+    padding:9px 18px;border-radius:999px;font-size:.85rem;font-weight:600;
+    color:var(--ink-soft);white-space:nowrap;cursor:pointer;
+  }
+  .order-tab.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+  .order-tab .ct{margin-left:6px;opacity:.7;}
+
+  .order-card{
+    background:var(--white);border:1px solid var(--line);border-radius:14px;
+    padding:18px 20px;margin-bottom:14px;
+  }
+  .order-card-head{
+    display:flex;justify-content:space-between;align-items:center;
+    padding-bottom:14px;border-bottom:1px solid var(--line);margin-bottom:14px;flex-wrap:wrap;gap:10px;
+  }
+  .order-card-head .ocode{font-weight:700;color:var(--ink);font-size:.92rem;}
+  .order-card-head .odate{font-size:.78rem;color:var(--ink-soft);margin-top:2px;}
+  .order-items-preview{display:flex;gap:10px;align-items:center;margin-bottom:14px;overflow-x:auto;}
+  .oitem-thumb{
+    width:52px;height:52px;border-radius:9px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .oitem-thumb.more{background:var(--paper-deep);color:var(--ink-soft);font-size:.78rem;font-weight:700;}
+  .order-card-foot{
+    display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;
+  }
+  .order-total-mini{font-size:.86rem;color:var(--ink-soft);}
+  .order-total-mini strong{font-family:'JetBrains Mono',monospace;color:var(--ink);font-size:1rem;}
+  .order-actions{display:flex;gap:8px;flex-wrap:wrap;}
+
+  /* =========================================================
+     ORDER DETAIL / TRACK PAGE
+  ========================================================= */
+  .order-detail-head{
+    display:flex;justify-content:space-between;align-items:flex-start;
+    margin-bottom:24px;flex-wrap:wrap;gap:14px;
+  }
+  .order-detail-head h1{font-size:1.4rem;margin:0;}
+  .order-detail-head .odate-lg{font-size:.86rem;color:var(--ink-soft);margin-top:4px;}
+
+  .timeline-track{position:relative;padding-left:34px;}
+  .timeline-track::before{
+    content:"";position:absolute;left:11px;top:6px;bottom:6px;width:2px;background:var(--line);
+  }
+  .timeline-step{position:relative;padding-bottom:26px;}
+  .timeline-step:last-child{padding-bottom:0;}
+  .timeline-step .tdot{
+    position:absolute;left:-34px;top:0;width:24px;height:24px;border-radius:50%;
+    background:var(--paper-deep);border:2px solid var(--line);
+    display:flex;align-items:center;justify-content:center;color:var(--ink-soft);
+  }
+  .timeline-step.done .tdot{background:var(--moss);border-color:var(--moss);color:#fff;}
+  .timeline-step.current .tdot{background:var(--terracotta);border-color:var(--terracotta);color:#fff;}
+  .timeline-step.current::before{
+    content:"";position:absolute;left:-26px;top:-4px;width:32px;height:32px;border-radius:50%;
+    border:2px solid rgba(194,84,45,.3);
+  }
+  .timeline-step .tlabel{font-weight:700;font-size:.92rem;color:var(--ink);}
+  .timeline-step.future .tlabel{color:var(--ink-soft);font-weight:600;}
+  .timeline-step .ttime{font-size:.78rem;color:var(--ink-soft);margin-top:2px;}
+  .timeline-step .tnote{font-size:.82rem;color:var(--ink-soft);margin-top:6px;background:var(--paper-deep);padding:9px 12px;border-radius:9px;}
+
+  .invoice-table{width:100%;font-size:.88rem;}
+  .invoice-table td{padding:9px 0;border-bottom:1px solid var(--line);}
+  .invoice-table tr:last-child td{border-bottom:none;}
+  .invoice-table .it-name{color:var(--ink);font-weight:500;}
+  .invoice-table .it-meta{color:var(--ink-soft);font-size:.78rem;}
+  .invoice-table .it-price{font-family:'JetBrains Mono',monospace;text-align:right;color:var(--ink);}
+
+  .delivery-info-row{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);font-size:.86rem;}
+  .delivery-info-row:last-child{border-bottom:none;}
+  .delivery-info-row svg{color:var(--terracotta);width:18px;flex-shrink:0;margin-top:1px;}
+  .delivery-info-row .dl{color:var(--ink-soft);min-width:110px;}
+  .delivery-info-row .dv{color:var(--ink);font-weight:600;}
+
+  .modal-confirm-backdrop{
+    position:fixed;inset:0;background:rgba(31,43,61,.5);
+    display:none;align-items:center;justify-content:center;z-index:1000;padding:20px;
+  }
+  .modal-confirm-backdrop.open{display:flex;}
+  .modal-confirm-box{
+    background:var(--white);border-radius:18px;max-width:380px;width:100%;
+    padding:26px 24px;text-align:center;
+  }
+  .modal-confirm-box .micon{
+    width:54px;height:54px;border-radius:50%;background:#F4DEDC;color:#9C2E24;
+    display:flex;align-items:center;justify-content:center;margin:0 auto 14px;
+  }
+  .modal-confirm-box h3{font-size:1.1rem;margin-bottom:8px;}
+  .modal-confirm-box p{font-size:.86rem;color:var(--ink-soft);margin-bottom:18px;}
+  .modal-confirm-box textarea{
+    width:100%;border:1px solid var(--line);border-radius:9px;padding:10px 12px;
+    font-size:.85rem;resize:vertical;min-height:70px;margin-bottom:14px;font-family:'Inter',sans-serif;
+  }
+
+  /* =========================================================
+     ORDER SUCCESS PAGE
+  ========================================================= */
+  .success-hero{
+    background:linear-gradient(165deg,var(--ink) 0%,#15202F 100%);
+    border-radius:24px;padding:50px 40px;text-align:center;color:var(--paper);
+    position:relative;overflow:hidden;
+  }
+  .success-hero::before{
+    content:"";position:absolute;top:-50px;right:-50px;width:180px;height:180px;
+    border-radius:50%;background:rgba(91,107,79,.25);
+  }
+  .success-checkmark{
+    width:84px;height:84px;border-radius:50%;background:var(--moss);
+    display:flex;align-items:center;justify-content:center;margin:0 auto 22px;
+    position:relative;z-index:1;animation:successPop .4s ease;
+  }
+  @keyframes successPop{from{transform:scale(0);}60%{transform:scale(1.15);}to{transform:scale(1);}}
+  .success-hero h1{font-size:1.8rem;position:relative;z-index:1;}
+  .success-hero p{color:#B9C0CE;font-size:.92rem;margin-top:8px;position:relative;z-index:1;}
+  .success-order-code{
+    display:inline-block;font-family:'JetBrains Mono',monospace;font-weight:700;
+    background:rgba(255,255,255,.1);padding:8px 20px;border-radius:999px;
+    margin-top:16px;font-size:1rem;position:relative;z-index:1;letter-spacing:.03em;
+  }
+  .success-steps-row{display:flex;justify-content:center;gap:0;margin-top:30px;position:relative;z-index:1;}
+
+  /* =========================================================
+     ACCOUNT PAGE
+  ========================================================= */
+  .account-avatar{
+    width:74px;height:74px;border-radius:50%;background:var(--terracotta);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;
+    font-size:1.7rem;font-weight:700;
+  }
+  .account-tab-list a{
+    display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:9px;
+    color:var(--ink-soft);font-weight:600;font-size:.9rem;margin-bottom:2px;text-decoration:none;
+  }
+  .account-tab-list a:hover{background:var(--paper-deep);color:var(--ink);}
+  .account-tab-list a.active{background:var(--ink);color:var(--paper);}
+  .wishlist-card{position:relative;}
+  .wishlist-remove{
+    position:absolute;top:10px;right:10px;width:30px;height:30px;border-radius:50%;
+    background:rgba(255,255,255,.92);border:none;color:#C24545;display:flex;
+    align-items:center;justify-content:center;z-index:3;
+  }
+
+  /* =========================================================
+     NOTIFICATIONS PAGE
+  ========================================================= */
+  .notif-item{
+    display:flex;gap:14px;padding:16px;border-radius:14px;margin-bottom:10px;
+    background:var(--white);border:1px solid var(--line);position:relative;
+  }
+  .notif-item.unread{background:rgba(194,84,45,.04);border-color:rgba(194,84,45,.25);}
+  .notif-item.unread::before{
+    content:"";position:absolute;left:0;top:14px;bottom:14px;width:3px;
+    background:var(--terracotta);border-radius:0 3px 3px 0;
+  }
+  .notif-icon{
+    width:42px;height:42px;border-radius:50%;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .notif-icon.order{background:#DCE6F5;color:#2D4F8C;}
+  .notif-icon.promo{background:#FBE9D9;color:#A4612C;}
+  .notif-icon.system{background:var(--paper-deep);color:var(--ink-soft);}
+  .notif-body{flex:1;min-width:0;}
+  .notif-title{font-weight:700;font-size:.9rem;color:var(--ink);}
+  .notif-text{font-size:.85rem;color:var(--ink-soft);margin-top:2px;}
+  .notif-time{font-size:.74rem;color:#A8A096;margin-top:6px;}
+  .notif-filter-tabs{display:flex;gap:8px;margin-bottom:20px;}
+
+
+  .btn-outline-ink{
+    display:inline-flex;align-items:center;justify-content:center;gap:6px;
+    background:transparent;border:1px solid var(--line);color:var(--ink);
+    padding:11px 22px;border-radius:8px;font-weight:600;font-size:.9rem;
+    transition:.2s;cursor:pointer;text-decoration:none;
+  }
+  .btn-outline-ink:hover{border-color:var(--terracotta);color:var(--terracotta);}
+
+  .btn-danger-outline{
+    display:inline-flex;align-items:center;justify-content:center;gap:6px;
+    background:transparent;border:1px solid #C24545;color:#C24545;
+    padding:11px 22px;border-radius:8px;font-weight:600;font-size:.9rem;
+    transition:.2s;cursor:pointer;text-decoration:none;
+  }
+  .btn-danger-outline:hover{background:#C24545;color:#fff;}
+
+  .btn-block-shop{width:100%;display:flex;}
+
+  .btn-sm-shop{
+    display:inline-flex !important;align-items:center;justify-content:center;gap:5px;
+    padding:7px 16px !important;font-size:.82rem !important;border-radius:7px !important;
+  }
+  .btn-letter {
+    background: #be5938; 
+    color: #fff; 
+    padding: 12px 35px; 
+    border-radius: 50px; 
+    font-weight: 600; 
+    text-decoration: none; 
+    display: inline-block; 
+    border: none; 
+    transition: all 0.3s ease; /* Hiệu ứng chuyển đổi mượt mà */
+}
+
+/* Định nghĩa trạng thái khi di chuột vào */
+.btn-letter:hover {
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3); /* Đổ bóng */
+    transform: translateY(-2px);           /* Nổi lên 2px */
+    color: #fff;                           /* Đảm bảo chữ vẫn giữ màu trắng */
+    text-decoration: none;                 /* Không gạch chân */
+}
+/* ===== Rule bổ sung gộp từ các file khác ===== */
+
+/* nguồn gốc: Cart.jsp */
+.qty-stepper{display:flex;align-items:center;border:1px solid var(--line);border-radius:9px;overflow:hidden;width:fit-content;}
+
+/* nguồn gốc: Cart.jsp */
+.invoice-summary-block{margin-top:0;border-top:none;padding-top:0;}
+
+/* nguồn gốc: Cart.jsp */
+.invoice-summary-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;font-size:.87rem;}
+
+/* nguồn gốc: Cart.jsp */
+.invoice-summary-row .isr-label{display:flex;align-items:center;gap:7px;color:var(--ink-soft);}
+
+/* nguồn gốc: Cart.jsp */
+.invoice-summary-row .isr-label svg{width:14px;height:14px;color:#A8A096;}
+
+/* nguồn gốc: Cart.jsp */
+.invoice-summary-row .isr-value{font-family:'JetBrains Mono',monospace;color:var(--ink);font-weight:500;}
+
+/* nguồn gốc: Cart.jsp */
+.invoice-summary-row.discount .isr-value{color:var(--moss);font-weight:600;}
+
+/* nguồn gốc: Cart.jsp */
+.invoice-summary-row.discount .isr-label svg{color:var(--moss);}
+
+/* nguồn gốc: Cart.jsp */
+.invoice-summary-row.muted .isr-value{color:var(--ink-soft);font-style:italic;font-size:.8rem;}
+
+/* nguồn gốc: Cart.jsp */
+.invoice-grand-total{
+    display:flex;justify-content:space-between;align-items:center;
+    background:var(--ink);color:#fff;border-radius:12px;padding:16px 18px;margin-top:14px;
+  }
+
+/* nguồn gốc: Cart.jsp */
+.invoice-grand-total .igt-label{font-size:.88rem;font-weight:600;color:#C3CAD6;}
+
+/* nguồn gốc: Cart.jsp */
+.invoice-grand-total .igt-value{font-family:'JetBrains Mono',monospace;font-size:1.35rem;font-weight:700;color:#F2A878;}
+
+/* nguồn gốc: Checkout.jsp */
+.voucher-select {
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  background: #fff;
+  border: 1px solid var(--line, #e4dcc9);
+  border-radius: 10px;
+  padding: 11px 38px 11px 14px;
+  font-size: .92rem;
+  font-family: inherit;
+  color: var(--ink, #2b2b2b);
+  cursor: pointer;
+  transition: border-color .15s ease, box-shadow .15s ease;
+
+  /* Mũi tên tùy chỉnh bằng SVG, thay cho mũi tên mặc định của OS */
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a8272' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+}
+
+/* nguồn gốc: Checkout.jsp */
+.voucher-select:hover {
+  border-color: var(--terracotta, #c1653f);
+}
+
+/* nguồn gốc: Checkout.jsp */
+.voucher-select:focus {
+  outline: none;
+  border-color: var(--terracotta, #c1653f);
+  box-shadow: 0 0 0 3px rgba(193, 101, 63, .12);
+}
+
+/* nguồn gốc: Checkout.jsp */
+/* Style cho option — chỉ áp dụng nhất quán trên Firefox, 
+   Chrome/Edge Windows sẽ bỏ qua phần lớn thuộc tính này */
+.voucher-select option {
+  background: #fff;
+  color: var(--ink, #2b2b2b);
+  padding: 10px;
+}
+
+/* nguồn gốc: Checkout.jsp */
+.voucher-select option:checked {
+  background: rgba(193, 101, 63, .08);
+  color: var(--terracotta, #c1653f);
+  font-weight: 600;
+}
+
+/* nguồn gốc: Home.jsp */
+.login-btn {
+    display: inline-flex;
+    align-items: center;    /* Căn giữa chiều dọc */
+    justify-content: center; /* Căn giữa chiều ngang */
+    gap: 8px;                /* Khoảng cách giữa chữ và icon */
+    text-decoration: none;   /* Bỏ gạch chân */
+    color: #333;             /* Màu chữ */
+    font-weight: 600;
+    
+    /* Tạo hình tròn bao quanh */
+    width: 120px;            /* Điều chỉnh độ rộng tùy ý */
+    height: 45px;
+    border: 1px solid #ddd;
+    border-radius: 50px;     /* Bo tròn toàn bộ */
+    transition: all 0.3s ease;
+}
+
+/* nguồn gốc: Home.jsp */
+.login-btn:hover {
+    background-color: #f8f9fa;
+    border-color: #aaa;
+}
+
+/* nguồn gốc: Home.jsp */
+.custom-dropdown {
+  font-family: 'Inter', sans-serif;
+  border-radius: 12px;           /* Bo góc mềm mại */
+  padding: 12px 0;               /* Khoảng cách trên dưới cho menu */
+  min-width: 220px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important; /* Đổ bóng sâu hơn một chút */
+  margin-top: 10px !important;   /* Cách nút user một khoảng nhỏ */
+}
+
+/* nguồn gốc: Home.jsp */
+/* Căn chỉnh các item bên trong */
+.custom-dropdown .dropdown-item {
+  padding: 10px 20px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #0b2239;                /* Màu xanh đen giống trong ảnh */
+  transition: all 0.2s ease;
+}
+
+/* nguồn gốc: Home.jsp */
+/* Hiệu ứng khi di chuột vào item thường */
+.custom-dropdown .dropdown-item:hover {
+  background-color: #f8f9fa;
+  color: #000;
+}
+
+/* nguồn gốc: Home.jsp */
+/* Chỉnh màu đỏ cho nút Log out giống thiết kế */
+.custom-dropdown .logout-item {
+  color: #c93444 !important;     
+}
+
+/* nguồn gốc: Home.jsp */
+/* Hiệu ứng hover riêng cho nút Log out */
+.custom-dropdown .logout-item:hover {
+  background-color: #fff0f2;
+  color: #a82431 !important;
+}
+
+/* nguồn gốc: Home.jsp */
+/* Thu gọn đường kẻ ngang (divider) vào giữa một chút */
+.custom-dropdown .custom-divider {
+  margin: 8px 20px;
+  border-top-color: #e2e8f0;
+  opacity: 1;
+}
+
+/* nguồn gốc: Home.jsp */
+.card-img {
+  width: 100%;
+  height: 150px; /* Điều chỉnh chiều cao ảnh tùy ý */
+  object-fit: cover; /* Giúp ảnh không bị méo tỉ lệ */
+  border-radius: 8px; /* Bo góc nhẹ cho ảnh nếu muốn */
+  margin-bottom: 15px; /* Tạo khoảng cách với phần text bên dưới */
+}
+
+/* nguồn gốc: Home.jsp */
+/* Định dạng cho ảnh nằm vừa vặn trong khung */
+.card-img-fit {
+    width: 90%;  /* Để lại 10% làm viền lề 2 bên giúp ảnh nhỏ lại */
+    height: 90%; /* Để lại 10% lề trên dưới */
+    object-fit: contain; /* Thuộc tính quan trọng nhất: ép ảnh vừa khung, không cắt xén, không méo */
+}
+
+/* nguồn gốc: Home.jsp */
+/* Tăng kích thước icon lên một chút để cân đối với chữ */
+.custom-dropdown .dropdown-item i {
+  font-size: 1.1rem;
+}
+
+/* nguồn gốc: Home.jsp */
+.nl-form a{
+    background:var(--terracotta);color:#fff;border:none;
+    border-radius:999px;padding:10px 22px;font-weight:600;font-size:.88rem;
+    white-space:nowrap;
+  }
+
+/* nguồn gốc: Login.jsp */
+.alert-banner.error{background:#F4DEDC;color:#9C2E24;}
+
+
+/* nguồn gốc: Login.jsp */
+.alert-banner svg{flex-shrink:0;margin-top:1px;width:16px;}
+
+/* nguồn gốc: OrderDetail.jsp */
+.invoice-table-pro{width:100%;border-collapse:separate;border-spacing:0;font-size:.86rem;}
+
+/* nguồn gốc: OrderDetail.jsp */
+.invoice-table-pro thead th{
+    font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;font-weight:700;
+    color:var(--ink-soft);text-align:left;padding:0 0 10px;border-bottom:1.5px solid var(--ink);
+  }
+
+/* nguồn gốc: OrderDetail.jsp */
+.invoice-table-pro thead th.num{text-align:right;}
+
+/* nguồn gốc: OrderDetail.jsp */
+.invoice-table-pro tbody td{padding:12px 0;border-bottom:1px solid var(--line);vertical-align:top;}
+
+/* nguồn gốc: OrderDetail.jsp */
+.invoice-table-pro tbody tr:last-child td{border-bottom:none;}
+
+/* nguồn gốc: OrderDetail.jsp */
+.invoice-table-pro .it-name{color:var(--ink);font-weight:600;font-size:.88rem;}
+
+/* nguồn gốc: OrderDetail.jsp */
+.invoice-table-pro .it-meta{color:var(--ink-soft);font-size:.76rem;margin-top:2px;}
+
+/* nguồn gốc: OrderDetail.jsp */
+.invoice-table-pro .it-qty{text-align:center;color:var(--ink-soft);font-family:'JetBrains Mono',monospace;}
+
+/* nguồn gốc: OrderDetail.jsp */
+.invoice-table-pro .it-unit{text-align:right;color:var(--ink-soft);font-family:'JetBrains Mono',monospace;font-size:.82rem;}
+
+/* nguồn gốc: OrderDetail.jsp */
+.invoice-table-pro .it-price{text-align:right;color:var(--ink);font-family:'JetBrains Mono',monospace;font-weight:600;}
+
+/* nguồn gốc: OrderDetail.jsp */
+.invoice-savings-pill{
+    display:inline-flex;align-items:center;gap:6px;
+    background:rgba(91,107,79,.1);color:var(--moss);
+    font-size:.78rem;font-weight:600;padding:6px 14px;border-radius:999px;margin-top:12px;
+  }
+
+/* nguồn gốc: ProductDetail.jsp */
+/* ---- Carousel controls (arrows + dots) ---- */
+  .gallery-main{position:relative;overflow:hidden;}
+
+/* nguồn gốc: ProductDetail.jsp */
+.gallery-track{
+    display:flex;height:100%;width:100%;
+    transition:transform .35s ease;
+    touch-action:pan-y;
+  }
+
+/* nguồn gốc: ProductDetail.jsp */
+.gallery-slide{
+    flex:0 0 100%;height:100%;
+    display:flex;align-items:center;justify-content:center;
+  }
+
+/* nguồn gốc: ProductDetail.jsp */
+.gallery-arrow{
+    position:absolute;top:50%;transform:translateY(-50%);
+    width:38px;height:38px;border-radius:50%;
+    background:rgba(255,255,255,.92);border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;
+    color:var(--ink);cursor:pointer;z-index:3;
+    transition:.15s;
+  }
+
+/* nguồn gốc: ProductDetail.jsp */
+.gallery-arrow:hover{background:var(--white);border-color:var(--terracotta);color:var(--terracotta);}
+
+/* nguồn gốc: ProductDetail.jsp */
+.gallery-arrow.prev{left:12px;}
+
+/* nguồn gốc: ProductDetail.jsp */
+.gallery-arrow.next{right:12px;}
+
+/* nguồn gốc: ProductDetail.jsp */
+.gallery-dots{
+    position:absolute;bottom:12px;left:0;right:0;
+    display:flex;justify-content:center;gap:6px;z-index:3;
+  }
+
+/* nguồn gốc: ProductDetail.jsp */
+.gallery-dot{
+    width:7px;height:7px;border-radius:50%;
+    background:rgba(31,43,61,.25);cursor:pointer;
+    transition:.2s;
+  }
+
+/* nguồn gốc: ProductDetail.jsp */
+.gallery-dot.active{background:var(--terracotta);width:18px;border-radius:99px;}
+
+/* nguồn gốc: ProductDetail.jsp */
+.gallery-counter{
+    position:absolute;top:12px;right:12px;z-index:3;
+    background:rgba(31,43,61,.7);color:#fff;
+    font-family:'JetBrains Mono',monospace;font-size:.72rem;
+    padding:3px 9px;border-radius:999px;
+  }
+
+
+/* nguồn gốc: manager-products.jsp */
+/* ===== MỚI: file gốc chưa có rule nền cho 3 class này — chỉ có phần override
+     màu cho admin-main (dòng "border-color/background" phía dưới), thiếu hẳn
+     display/width/padding/border khiến input/select/label bị trôi dạt, không
+     xuống dòng (giống lỗi trong ảnh: label "SKU" chạy cạnh dropdown "Sách (Book)"
+     thay vì xuống dòng riêng). Thêm rule nền chuẩn, đồng bộ style với .sort-select
+     đã có sẵn trong file. ===== */
+  .form-label-shop{
+    display:block;margin-bottom:6px;font-size:.8rem;font-weight:600;color:var(--ink-soft);
+  }
+
+/* nguồn gốc: manager-products.jsp */
+.form-control-shop,
+  .form-select-shop{
+    display:block;width:100%;box-sizing:border-box;
+    border:1px solid var(--line);border-radius:9px;
+    padding:10px 12px;font-size:.9rem;
+    background:var(--paper);color:var(--ink);
+  }
+
+/* nguồn gốc: manager-products.jsp */
+.form-control-shop:focus,
+  .form-select-shop:focus{
+    outline:none;border-color:var(--terracotta);
+  }
+
+
+/* nguồn gốc: manager-products.jsp */
+/* ===== MỚI: rule gốc .modal-confirm-box (ở trên) không có max-height/overflow-y,
+     nên form dài (Thêm/Sửa sản phẩm) bị tràn khỏi viewport mà không kéo được.
+     Thêm rule bổ sung cùng selector — đặt sau nên được ưu tiên áp dụng thêm 2
+     thuộc tính mới này, không đụng tới các thuộc tính đã khai báo ở trên. ===== */
+  .modal-confirm-box{
+    max-height:90vh;
+    overflow-y:auto;
+  }
+
+
+/* nguồn gốc: manager-products.jsp */
+/* =========================================================
+     ADMIN / STAFF / MANAGER SHELL LAYOUT
+     Tông màu tối riêng biệt hoàn toàn với giao diện khách hàng
+     (khách hàng dùng --paper sáng kraft; khu nội bộ dùng xám đen)
+  ========================================================= */
+  :root{
+    --admin-bg: #14191F;
+    --admin-bg-deep: #0E1217;
+    --admin-surface: #1C2229;
+    --admin-surface-2: #242B33;
+    --admin-border: #2D3540;
+    --admin-text: #E5E7EA;
+    --admin-text-soft: #8B94A0;
+  }
+
+/* nguồn gốc: manager-products.jsp */
+.admin-shell{display:flex;min-height:100vh;background:var(--admin-bg);}
+
+/* nguồn gốc: manager-products.jsp */
+.admin-sidebar{
+    width:256px;flex-shrink:0;background:var(--admin-bg-deep);color:var(--paper);
+    padding:22px 14px;position:sticky;top:0;height:100vh;overflow-y:auto;
+    border-right:1px solid var(--admin-border);
+  }
+
+/* nguồn gốc: manager-products.jsp */
+.admin-sidebar .brand{color:#fff;font-size:1.25rem;display:block;margin-bottom:6px;padding:0 10px;}
+
+/* nguồn gốc: manager-products.jsp */
+.admin-sidebar .brand .dot{color:var(--terracotta);}
+
+/* nguồn gốc: manager-products.jsp */
+.admin-sidebar .group-label{
+    font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;font-weight:700;
+    color:#5C6573;padding:18px 10px 8px;
+  }
+
+/* nguồn gốc: manager-products.jsp */
+.admin-sidebar a{
+    display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:9px;
+    color:#9AA3B0;font-weight:600;font-size:.86rem;margin-bottom:2px;text-decoration:none;
+  }
+
+/* nguồn gốc: manager-products.jsp */
+.admin-sidebar a:hover{background:rgba(255,255,255,.05);color:#fff;}
+
+/* nguồn gốc: manager-products.jsp */
+.admin-sidebar a.active{background:var(--terracotta);color:#fff;}
+
+/* nguồn gốc: manager-products.jsp */
+.admin-main{flex:1;min-width:0;background:var(--admin-bg);}
+
+/* nguồn gốc: manager-products.jsp */
+.admin-topbar{
+    background:var(--admin-bg-deep);border-bottom:1px solid var(--admin-border);
+    padding:16px 28px;display:flex;align-items:center;justify-content:space-between;
+    position:sticky;top:0;z-index:10;
+  }
+
+/* nguồn gốc: manager-products.jsp */
+.admin-topbar > div:first-child{color:#fff !important;}
+
+/* MỚI: banner "Yêu cầu hoàn hàng đang chờ xử lý" — TRƯỚC ĐÂY dùng .panel mặc
+   định (nền tối theo theme admin) nhưng chữ bên trong không hề đổi màu theo
+   theme, vẫn là màu chữ tối của theme khách hàng --ink/--ink-soft -> chữ tối
+   trên nền tối, gần như không đọc được. Giờ tách riêng class, dùng đúng biến
+   màu chữ sáng của theme admin (--admin-text/--admin-text-soft). */
+.return-request-banner{
+  background:var(--admin-surface-2);border:1px solid var(--admin-border);
+  border-left:4px solid #E2725B;border-radius:16px;padding:18px 22px;margin-bottom:20px;
+}
+.return-request-banner .panel-title{color:var(--admin-text);}
+.return-request-row{
+  display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:12px 0;border-bottom:1px solid var(--admin-border);
+}
+.return-request-row:last-child{border-bottom:none;}
+.return-request-row .rr-main{font-size:.88rem;color:var(--admin-text);}
+.return-request-row .rr-sub{color:var(--admin-text-soft);font-size:.82rem;margin-top:3px;}
+
+/* MỚI: widget "Thông tin tài khoản" (account-info.jspf) trên topbar Manager/Staff/Admin */
+.account-info-widget{position:relative;}
+.account-info-trigger{padding:0;}
+.account-info-dropdown{
+  display:none;position:absolute;top:calc(100% + 10px);right:0;width:260px;
+  background:var(--admin-surface-2, #fff);border:1px solid var(--admin-border, #E4DED6);
+  border-radius:14px;box-shadow:0 12px 30px rgba(31,43,61,.18);padding:16px;z-index:50;
+}
+.account-info-dropdown.open{display:block;}
+.account-info-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.account-info-name{font-weight:700;color:var(--ink);font-size:.92rem;}
+.account-info-role-tag{
+  display:inline-block;margin-top:2px;font-size:.7rem;font-weight:700;letter-spacing:.03em;
+  padding:2px 8px;border-radius:20px;background:#F4DEDC;color:#9C2E24;
+}
+.account-info-row{
+  display:flex;justify-content:space-between;gap:10px;font-size:.82rem;
+  padding:7px 0;border-top:1px solid var(--admin-border, #E4DED6);color:var(--ink-soft);
+}
+.account-info-row b{color:var(--ink);font-weight:600;text-align:right;word-break:break-word;}
+.account-info-hint{
+  margin:10px 0 0;padding-top:10px;border-top:1px solid var(--admin-border, #E4DED6);
+  font-size:.74rem;color:var(--ink-soft);line-height:1.4;
+}
+
+/* nguồn gốc: manager-products.jsp */
+.admin-content{padding:28px;max-width:1400px;}
+
+/* nguồn gốc: manager-products.jsp */
+@media (max-width:900px){ .admin-sidebar{display:none;} }
+
+/* nguồn gốc: manager-products.jsp */
+/* ---- Override các component dùng chung (panel, table, card) khi
+     nằm trong .admin-main, để khớp tông tối thay vì tông sáng kraft ---- */
+  .admin-main .panel,
+  .admin-main .stat-card,
+  .admin-main .table-shop,
+  .admin-main .modal-confirm-box,
+  .admin-main .filter-panel{
+    background:var(--admin-surface);
+    border-color:var(--admin-border);
+  }
+
+/* nguồn gốc: manager-products.jsp */
+.admin-main .panel-title,
+  .admin-main .page-title-row h1,
+  .admin-main .stat-card .value,
+  .admin-main h1, .admin-main h2, .admin-main h3{
+    color:#fff;
+  }
+
+/* nguồn gốc: manager-products.jsp */
+.admin-main .sub,
+  .admin-main .stat-card .label,
+  .admin-main .form-hint,
+  .admin-main .panel p{
+    color:var(--admin-text-soft);
+  }
+
+/* nguồn gốc: manager-products.jsp */
+.admin-main .table-shop thead th{
+    background:var(--admin-surface-2);color:var(--admin-text-soft);
+    border-bottom-color:var(--admin-border);
+  }
+
+/* nguồn gốc: manager-products.jsp */
+.admin-main .table-shop tbody td{
+    color:var(--admin-text);border-bottom-color:var(--admin-border);
+  }
+
+/* nguồn gốc: manager-products.jsp */
+.admin-main .table-shop tbody tr:hover{background:rgba(255,255,255,.025);}
+
+/* nguồn gốc: manager-products.jsp */
+.admin-main .panel-divider{border-top-color:var(--admin-border);}
+
+/* nguồn gốc: manager-products.jsp */
+.admin-main .form-control-shop,
+  .admin-main .form-select-shop,
+  .admin-main .admin-search-box,
+  .admin-main .sort-select{
+    background:var(--admin-surface-2);border-color:var(--admin-border);color:var(--admin-text);
+  }
+
+/* nguồn gốc: manager-products.jsp */
+.admin-main .form-control-shop::placeholder{color:#5C6573;}
+
+/* nguồn gốc: manager-products.jsp */
+.admin-main .form-label-shop{color:#C3CAD6;}
+
+/* nguồn gốc: manager-products.jsp */
+.admin-main .btn-outline-ink{
+    background:transparent;border-color:var(--admin-border);color:var(--admin-text);
+  }
+
+/* nguồn gốc: manager-products.jsp */
+.admin-main .btn-outline-ink:hover{border-color:var(--terracotta);color:var(--terracotta);}
+
+/* nguồn gốc: manager-products.jsp */
+.admin-main .row-action-btn{color:var(--admin-text-soft);}
+
+/* nguồn gốc: manager-products.jsp */
+.admin-main .row-action-btn:hover{background:var(--admin-surface-2);color:#fff;}
+
+/* nguồn gốc: manager-products.jsp */
+.admin-main .tabs-shop{border-bottom-color:var(--admin-border);}
+
+/* nguồn gốc: manager-products.jsp */
+.admin-main .tab-btn{color:var(--admin-text-soft);}
+
+/* nguồn gốc: manager-products.jsp */
+.admin-main .breadcrumb-shop{color:var(--admin-text-soft);}
+
+/* nguồn gốc: manager-products.jsp */
+.admin-main .breadcrumb-shop .current{color:#fff;}
+
+/* nguồn gốc: manager-products.jsp */
+.admin-main .upload-dropzone{background:var(--admin-surface-2);border-color:var(--admin-border);color:var(--admin-text-soft);}
+
+/* nguồn gốc: manager-products.jsp */
+.admin-main .receipt-line-row{border-bottom-color:var(--admin-border);}
+
+/* nguồn gốc: manager-products.jsp */
+.admin-main .wizard-step{background:var(--admin-surface-2);border-color:var(--admin-border);color:var(--admin-text-soft);}
+
+/* nguồn gốc: manager-products.jsp */
+.admin-main .delivery-info-row{border-bottom-color:var(--admin-border);}
+
+/* nguồn gốc: manager-products.jsp */
+.admin-main .delivery-info-row .dl{color:var(--admin-text-soft);}
+
+/* nguồn gốc: manager-products.jsp */
+.admin-main .delivery-info-row .dv{color:var(--admin-text);}
+
+/* nguồn gốc: manager-products.jsp */
+.admin-main .order-tab{background:var(--admin-surface-2);border-color:var(--admin-border);color:var(--admin-text-soft);}
+
+/* nguồn gốc: manager-products.jsp */
+.admin-main .evidence-thumb{background:var(--admin-surface-2);color:var(--admin-text-soft);}
+
+/* nguồn gốc: manager-products.jsp */
+.admin-main .approval-node .a-circle{background:var(--admin-surface-2);border-color:var(--admin-border);color:var(--admin-text-soft);}
+
+/* nguồn gốc: manager-products.jsp */
+.admin-main .approval-line{background:var(--admin-border);}
+
+/* nguồn gốc: manager-products.jsp */
+.admin-topbar .icon-btn{background:var(--admin-surface-2);border-color:var(--admin-border);color:var(--admin-text);}
+
+/* nguồn gốc: manager-products.jsp */
+.admin-topbar .icon-btn:hover{border-color:var(--terracotta);color:var(--terracotta);}
+
+/* nguồn gốc: manager-products.jsp */
+/* ---- Stat cards (dashboard) ---- */
+  .stat-card{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:18px 20px;}
+
+/* nguồn gốc: manager-products.jsp */
+.stat-card .label{font-size:.78rem;color:var(--ink-soft);font-weight:600;display:flex;align-items:center;gap:7px;}
+
+/* nguồn gốc: manager-products.jsp */
+.stat-card .value{font-family:'Fraunces',serif;font-size:1.7rem;font-weight:700;color:var(--ink);margin-top:6px;}
+
+/* nguồn gốc: manager-products.jsp */
+.stat-card .delta{font-size:.78rem;font-weight:700;margin-top:6px;display:inline-flex;align-items:center;gap:4px;}
+
+/* nguồn gốc: manager-products.jsp */
+.delta-up{color:var(--moss);}
+
+/* nguồn gốc: manager-products.jsp */
+.delta-down{color:#C24545;}
+
+/* nguồn gốc: manager-products.jsp */
+/* ---- Page heading inside content ---- */
+  .page-title-row{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:20px;flex-wrap:wrap;gap:12px;}
+
+/* nguồn gốc: manager-products.jsp */
+.page-title-row h1{font-size:1.4rem;margin:0;}
+
+/* nguồn gốc: manager-products.jsp */
+.page-title-row .sub{font-size:.86rem;color:var(--ink-soft);margin-top:2px;}
+
+/* nguồn gốc: manager-products.jsp */
+/* ---- Data table (orders, products, accounts...) ---- */
+  .table-shop{width:100%;border-collapse:separate;border-spacing:0;font-size:.86rem;background:var(--white);border-radius:14px;overflow:hidden;border:1px solid var(--line);}
+
+/* nguồn gốc: manager-products.jsp */
+.table-shop thead th{
+    background:var(--paper-deep);color:var(--ink-soft);font-size:.72rem;text-transform:uppercase;
+    letter-spacing:.05em;font-weight:700;text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);
+  }
+
+/* nguồn gốc: manager-products.jsp */
+.table-shop tbody td{padding:13px 14px;border-bottom:1px solid var(--line);color:var(--ink);vertical-align:middle;}
+
+/* nguồn gốc: manager-products.jsp */
+.table-shop tbody tr:last-child td{border-bottom:none;}
+
+/* nguồn gốc: manager-products.jsp */
+.table-shop tbody tr:hover{background:rgba(194,84,45,.035);}
+
+/* nguồn gốc: manager-products.jsp */
+.table-thumb{width:38px;height:38px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+
+/* nguồn gốc: manager-products.jsp */
+.row-action-btn{background:none;border:none;color:var(--ink-soft);padding:5px;border-radius:6px;}
+
+/* nguồn gốc: manager-products.jsp */
+.row-action-btn:hover{background:var(--paper-deep);color:var(--ink);}
+
+/* nguồn gốc: manager-products.jsp */
+/* ---- Role badge ---- */
+  .role-badge{display:inline-flex;align-items:center;gap:5px;font-size:.72rem;font-weight:700;padding:4px 10px;border-radius:999px;text-transform:uppercase;letter-spacing:.03em;}
+
+/* nguồn gốc: manager-products.jsp */
+.role-customer{background:#DCE6F5;color:#2D4F8C;}
+
+/* nguồn gốc: manager-products.jsp */
+.role-staff{background:#E3DFF5;color:#5A3FA0;}
+
+/* nguồn gốc: manager-products.jsp */
+.role-manager{background:#FBE9D9;color:#A4612C;}
+
+/* nguồn gốc: manager-products.jsp */
+.role-admin{background:#F4DEDC;color:#9C2E24;}
+
+/* nguồn gốc: manager-products.jsp */
+/* ---- Toolbar (search + filter + add button) ---- */
+  .admin-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap;}
+
+/* nguồn gốc: manager-products.jsp */
+.admin-search-box{
+    display:flex;align-items:center;gap:8px;background:var(--white);border:1px solid var(--line);
+    border-radius:9px;padding:8px 14px;min-width:260px;
+  }
+
+/* nguồn gốc: manager-products.jsp */
+.admin-search-box input{border:none;outline:none;background:transparent;font-size:.86rem;width:100%;}
+
+/* nguồn gốc: manager-products.jsp */
+/* ---- Wizard / multi-step form (create product, import receipt) ---- */
+  .wizard-steps{display:flex;gap:6px;margin-bottom:22px;}
+
+/* nguồn gốc: manager-products.jsp */
+.wizard-step{flex:1;text-align:center;padding:10px 8px;border-radius:9px;background:var(--white);border:1px solid var(--line);font-size:.82rem;font-weight:600;color:var(--ink-soft);}
+
+/* nguồn gốc: manager-products.jsp */
+.wizard-step.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+
+/* nguồn gốc: manager-products.jsp */
+.wizard-step.done{background:var(--moss);color:#fff;border-color:var(--moss);}
+
+/* nguồn gốc: manager-products.jsp */
+.upload-dropzone{
+    border:1.5px dashed var(--line);border-radius:12px;padding:28px;text-align:center;
+    color:var(--ink-soft);font-size:.85rem;background:var(--white);cursor:pointer;
+  }
+
+/* nguồn gốc: manager-products.jsp */
+.upload-dropzone:hover{border-color:var(--terracotta);color:var(--terracotta);}
+
+/* nguồn gốc: manager-products.jsp */
+.upload-dropzone svg{width:28px;height:28px;margin-bottom:8px;}
+
+/* nguồn gốc: manager-products.jsp */
+.receipt-line-row{
+    display:grid;grid-template-columns:2.2fr 1fr 1fr 1fr 40px;gap:10px;align-items:center;
+    padding:10px 0;border-bottom:1px solid var(--line);
+  }
+
+/* nguồn gốc: manager-products.jsp */
+.receipt-line-row:last-child{border-bottom:none;}
+
+/* nguồn gốc: manager-products.jsp */
+/* ---- Toggle switch (Active/Inactive) ---- */
+  .toggle-switch{position:relative;display:inline-block;width:42px;height:24px;}
+
+/* nguồn gốc: manager-products.jsp */
+.toggle-switch input{opacity:0;width:0;height:0;}
+
+/* nguồn gốc: manager-products.jsp */
+.toggle-slider{position:absolute;cursor:pointer;inset:0;background:var(--line);border-radius:999px;transition:.2s;}
+
+/* nguồn gốc: manager-products.jsp */
+.toggle-slider::before{position:absolute;content:"";width:18px;height:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s;}
+
+/* nguồn gốc: manager-products.jsp */
+.toggle-switch input:checked + .toggle-slider{background:var(--moss);}
+
+/* nguồn gốc: manager-products.jsp */
+.toggle-switch input:checked + .toggle-slider::before{transform:translateX(18px);}
+
+/* nguồn gốc: manager-products.jsp */
+/* ---- Approval steps (return request 2-tier) ---- */
+  .approval-track{display:flex;align-items:center;gap:0;margin:18px 0;}
+
+/* nguồn gốc: manager-products.jsp */
+.approval-node{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;text-align:center;}
+
+/* nguồn gốc: manager-products.jsp */
+.approval-node .a-circle{width:34px;height:34px;border-radius:50%;background:var(--paper-deep);border:2px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--ink-soft);font-weight:700;font-size:.8rem;}
+
+/* nguồn gốc: manager-products.jsp */
+.approval-node.done .a-circle{background:var(--moss);border-color:var(--moss);color:#fff;}
+
+/* nguồn gốc: manager-products.jsp */
+.approval-node.rejected .a-circle{background:#C24545;border-color:#C24545;color:#fff;}
+
+/* nguồn gốc: manager-products.jsp */
+.approval-node.pending .a-circle{background:var(--terracotta);border-color:var(--terracotta);color:#fff;}
+
+/* nguồn gốc: manager-products.jsp */
+.approval-node .a-label{font-size:.74rem;font-weight:600;color:var(--ink-soft);}
+
+/* nguồn gốc: manager-products.jsp */
+.approval-line{flex:0 0 50px;height:2px;background:var(--line);margin-top:-22px;}
+
+/* nguồn gốc: manager-products.jsp */
+.evidence-thumb{width:64px;height:64px;border-radius:9px;background:var(--paper-deep);display:flex;align-items:center;justify-content:center;color:var(--ink-soft);}
+
+/* nguồn gốc: manager-products.jsp */
+.result-toast{
+    position:fixed;bottom:26px;right:26px;z-index:1100;
+    display:flex;align-items:center;gap:12px;
+    background:var(--ink);color:#fff;
+    padding:14px 20px;border-radius:12px;
+    box-shadow:0 14px 34px -8px rgba(0,0,0,.35);
+    max-width:380px;
+    transform:translateY(20px);opacity:0;pointer-events:none;
+    transition:.25s ease;
+  }
+
+/* nguồn gốc: manager-products.jsp */
+.result-toast.show{transform:translateY(0);opacity:1;}
+
+/* nguồn gốc: manager-products.jsp */
+.result-toast .rt-icon{
+    width:30px;height:30px;border-radius:50%;background:var(--moss);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+
+/* nguồn gốc: manager-products.jsp */
+.result-toast.error .rt-icon{background:#C24545;}
+
+/* nguồn gốc: manager-products.jsp */
+.result-toast .rt-text{font-size:.86rem;font-weight:500;line-height:1.4;}
+
+/* nguồn gốc: ProductList.jsp */
+.product-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+                gap: 10px;
+                margin-top: 30px;
+            }
+.product-card {
+                background: #fff;
+                border: 1px solid #D8CBB3;
+                border-radius: 12px;
+                padding: 16px;
+                transition: all 0.3s ease;
+                text-align: center;
+                display: flex;
+                flex-direction: column;
+                text-decoration: none;
+                position: relative;
+            }
+.badge-new {
+                position: absolute; top: 10px; left: 10px;
+                background: #6D776C; color: white;
+                padding: 2px 10px; border-radius: 12px; font-size: 0.7rem;
+            }
+.fav-btn {
+                position: absolute; top: 10px; right: 10px;
+                font-size: 1.5rem; cursor: pointer; color: #1F2B3D;
+            }
+.product-img-box {
+                height: 200px;
+                display: flex; align-items: center; justify-content: center;
+                margin-bottom: 16px; overflow: hidden; border-radius: 8px;
+            }
+.product-img-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.product-card .category {
+                font-size: 0.75rem; color: #42506A; text-transform: uppercase;
+                margin-bottom: 6px; font-weight: 600; letter-spacing: 0.05em;
+            }
+.product-card .name {
+                font-size: 1.05rem; font-weight: 600; color: #1F2B3D; margin: 0 0 8px 0;
+                font-family: 'Fraunces', serif; display: -webkit-box;
+                -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+            }
+.product-card .author { font-size: 0.85rem; color: #42506A; margin-bottom: 6px; }
+.product-card .stars {
+                color: #D9A441; font-size: 0.8rem; margin-bottom: auto;
+                padding-bottom: 12px; letter-spacing: 0.1em;
+            }
+.product-card .price {
+                font-size: 1.2rem; font-weight: 700; color: #C2542D; margin: 0;
+                font-family: 'JetBrains Mono', monospace;
+            }
+.pagination-container { display: flex; justify-content: center; gap: 10px; margin-top: 50px; }
+.page-link {
+                display: flex; align-items: center; justify-content: center;
+                width: 40px; height: 40px; border-radius: 8px; background: #fff;
+                border: 1px solid #D8CBB3; color: #1F2B3D; text-decoration: none;
+                font-weight: 600; transition: 0.3s;
+            }
+.page-link:hover, .page-link.active { background: #C2542D; color: #fff; border-color: #C2542D; }
+.form-control-shop.invalid,
+.form-select-shop.invalid { border-color: #C24545 !important; }
+.field-error {
+  color: #C24545; font-size: .78rem; margin-top: 4px; margin-bottom: 10px; display: none;
+}
+.field-error.show { display: block; }
+
+ 
+  
+  
+  
+  
+
+  
+
+  
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+  
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+  
+  
+  
+
+  
+  
+  
+
+  
+  
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+  
+  
+  
+  
+
+  
+
+  
+  
+  
+
+  
+  
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+
+  
+  
+  
+
+  
+  
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+  
+  
+  
+
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+  
+
+  
+  
+  
+
+  
+  
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+  
+  
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+  
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+
+  
+  
+
+  
+  
+
+  
+
+  
+
+/* ============================================================================
+   RULE GỘP THÊM — trước đây nằm rải rác trong <style> riêng của từng JSP
+   ============================================================================ */
+
+/* ---- nguồn gốc: ProductList.jsp — sidebar lọc giá ---- */
+/* Các rule .product-card / .product-grid / .pagination-container /
+               .page-link... đã có sẵn trong main.css (bản sao y hệt vốn được
+               copy từ chính file này trước đây) — không lặp lại ở đây nữa,
+               tránh 2 nguồn định nghĩa dễ lệch nhau khi 1 bên sửa mà quên bên kia. */
+            .page-link.disabled { opacity: 0.4; pointer-events: none; }
+
+.pagination-status { text-align: center; color: var(--ink-soft); font-size: 0.85rem; margin-top: 12px; }
+
+.catalog-layout { display: flex; gap: 32px; align-items: flex-start; }
+
+.filter-sidebar {
+                width: 220px; flex-shrink: 0; background: #fff;
+                border: 1px solid var(--line); border-radius: 12px; padding: 20px;
+                position: sticky; top: 20px;
+            }
+
+.filter-sidebar h5 {
+                font-family: 'Fraunces', serif; font-size: 1rem; font-weight: 700;
+                color: var(--ink); margin-bottom: 14px;
+            }
+
+.filter-sidebar h5:not(:first-child) { margin-top: 22px; }
+
+.filter-sidebar a {
+                display: flex; justify-content: space-between; align-items: center;
+                padding: 8px 10px; border-radius: 8px; color: var(--ink-soft); text-decoration: none;
+                font-size: 0.9rem; margin-bottom: 2px; transition: 0.2s;
+            }
+
+.filter-sidebar a:hover { background: var(--paper); color: var(--ink); }
+
+.filter-sidebar a.active { background: var(--terracotta); color: #fff; font-weight: 600; }
+
+.filter-sidebar a .count { font-size: 0.75rem; opacity: 0.7; }
+
+.catalog-main { flex: 1; min-width: 0; }
+
+.price-filter-form { display: flex; flex-direction: column; gap: 8px; }
+
+.price-filter-form input {
+                width: 100%; padding: 8px 10px; border: 1px solid var(--line);
+                border-radius: 8px; font-size: 0.85rem; font-family: inherit;
+            }
+
+.price-filter-form button {
+                background: var(--ink); color: #fff; border: none; border-radius: 8px;
+                padding: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer;
+            }
+
+.price-filter-form button:hover { background: var(--terracotta); }
+
+.price-preset { font-size: 0.82rem; padding: 6px 10px; }
+
+@media (max-width: 768px) {
+                .catalog-layout { flex-direction: column; }
+                .filter-sidebar { width: 100%; position: static; }
+            }
+
+
+/* ---- nguồn gốc: manager-dashboard.jsp ---- */
+.dash-card{
+    background:var(--white); border:1px solid var(--line); border-radius:14px;
+    padding:18px 20px; border-left:4px solid var(--line);
+  }
+
+.dash-card.tone-revenue{ border-left-color:var(--terracotta); }
+
+.dash-card.tone-profit{ border-left-color:var(--moss); }
+
+.dash-card.tone-cost{ border-left-color:#C24545; background:#FBF2F1; }
+
+.dash-card.tone-neutral{ border-left-color:var(--ink-soft); }
+
+.dash-card .label{ font-size:.78rem; color:var(--ink-soft); font-weight:600; }
+
+.dash-card .value{ font-family:'Fraunces',serif; font-size:1.55rem; font-weight:700; color:var(--ink); margin-top:6px; }
+
+.dash-card.tone-cost .value{ color:#9C2E24; }
+
+.dash-chart-box{ background:var(--white); border:1px solid var(--line); border-radius:14px; padding:20px; height:100%; }
+
+.dash-chart-title{
+    font-weight:700; font-size:.95rem; color:var(--ink); margin-bottom:14px;
+    display:flex; align-items:center; gap:6px;
+  }
+
+.low-stock-badge{ background:#F4DEDC; color:#9C2E24; font-size:.72rem; font-weight:700; padding:3px 9px; border-radius:999px; }
+
+.range-tabs{ display:flex; gap:6px; }
+
+.range-tabs a{
+    padding:6px 14px; border-radius:8px; font-size:.82rem; font-weight:600;
+    border:1px solid var(--line); color:var(--ink-soft); text-decoration:none;
+  }
+
+.range-tabs a.active{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
+
+
+/* ---- nguồn gốc: admin-accounts.jsp ---- */
+.form-label-shop{
+    display:block;margin-bottom:6px;font-size:.83rem;font-weight:600;color:var(--ink-soft);
+  }
+
+.form-control-shop, .form-select-shop{
+    display:block;width:100%;
+    border:1px solid var(--line);border-radius:9px;
+    padding:10px 12px;font-size:.88rem;
+    background:var(--white);color:var(--ink);
+    font-family:'Inter',sans-serif;
+  }
+
+.form-hint{
+    display:block;font-size:.78rem;color:var(--ink-soft);line-height:1.5;
+  }
+
+.status-badge{display:inline-flex;align-items:center;gap:5px;font-size:.72rem;font-weight:700;padding:4px 10px;border-radius:999px;text-transform:uppercase;letter-spacing:.03em;}
+
+.status-delivered{background:#DEEFE0;color:#2E6B3E;}
+
+.status-cancelled{background:#F4DEDC;color:#9C2E24;}
+
+.status-locked{background:#FBEFC0;color:#7A5E12;}
+ .gallery-main {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background: #fafaf8;
+    border: 1px solid #ececec;
+    border-radius: 16px;
+    box-shadow: 0 6px 20px rgba(0,0,0,.05);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .gallery-main-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 24px;
+    transition: transform .25s ease;
+  }
+  .gallery-main:hover .gallery-main-img {
+    transform: scale(1.03);
+  }
