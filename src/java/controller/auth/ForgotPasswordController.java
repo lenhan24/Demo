@@ -80,4 +80,5 @@ public class ForgotPasswordController extends HttpServlet {
         }
         request.getRequestDispatcher("ForgotPassword.jsp").forward(request, response);
     }
+    //// new version
 }
