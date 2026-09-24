@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import model.Account_1;
-
+// commend
 @WebServlet(name = "AdminAccountsServlet", urlPatterns = {"/admin/accounts"})
 public class AdminAccountsServlet extends HttpServlet {
 
